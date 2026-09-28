@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(HubTfm)</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EmulatorPCHub.Core\EmulatorPCHub.Core.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Emulation\EmulatorPCHub.Emulation.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Library\EmulatorPCHub.Library.csproj" />
+  </ItemGroup>
+</Project>

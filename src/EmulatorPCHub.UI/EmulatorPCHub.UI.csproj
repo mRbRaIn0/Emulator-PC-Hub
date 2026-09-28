@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(HubWinTfm)</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EmulatorPCHub.Core\EmulatorPCHub.Core.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Library\EmulatorPCHub.Library.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Emulation\EmulatorPCHub.Emulation.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Mods\EmulatorPCHub.Mods.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Updates\EmulatorPCHub.Updates.csproj" />
+    <ProjectReference Include="..\EmulatorPCHub.Controllers\EmulatorPCHub.Controllers.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(HubWinTfm)</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EmulatorPCHub.Core\EmulatorPCHub.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- SDL3 (github.com/libsdl-org/SDL, zlib-Lizenz) ist NICHT im Repository: SDL3.dll (x64) selbst
+         nach native\ legen (siehe README). Ohne die DLL nutzt der Hub nur XInput (Xbox-kompatible Controller). -->
+    <None Include="native\SDL3.dll" Link="SDL3.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('native\SDL3.dll')" />
+    <None Include="native\SDL3-LICENSE.txt" Link="SDL3-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" Condition="Exists('native\SDL3-LICENSE.txt')" />
+  </ItemGroup>
+</Project>

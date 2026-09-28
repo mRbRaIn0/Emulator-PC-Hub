@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="EmulatorPCHub.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:EmulatorPCHub.App.Controls">
+
+    <Grid x:Name="Root" Background="{ThemeResource HubBackgroundBrush}">
+        <!-- Hintergrund wechselt passend zum ausgewählten Spiel -->
+        <Grid x:Name="Backdrop" IsHitTestVisible="False">
+            <Rectangle x:Name="BackdropTint" Opacity="0.55" />
+            <Image x:Name="BackdropImage" Stretch="UniformToFill" Opacity="0.16" />
+            <Rectangle>
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#00000000" Offset="0" />
+                        <GradientStop Color="{ThemeResource HubBackgroundColor}" Offset="0.95" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Grid>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Obere Leiste: Profil, Uhrzeit, Controller, Netzwerk, Vollbild, Einstellungen -->
+            <Grid x:Name="TopBar" Padding="48,22,48,6">
+                <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                    <Button x:Name="ProfileButton" IsTabStop="False" Style="{StaticResource HubRoundButton}" Width="56" Height="56" CornerRadius="28"
+                            Click="ProfileButton_Click" ToolTipService.ToolTip="Profil">
+                        <controls:AvatarView x:Name="TopAvatar" Width="50" Height="50" />
+                    </Button>
+                    <TextBlock x:Name="ProfileName" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"
+                               Foreground="{ThemeResource HubTextBrush}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="22" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock x:Name="ClockText" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"
+                               Foreground="{ThemeResource HubTextBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" ToolTipService.ToolTip="Controller">
+                        <FontIcon Glyph="&#xE7FC;" FontSize="20" Foreground="{ThemeResource HubTextBrush}" />
+                        <TextBlock x:Name="ControllerCountText" FontSize="16" VerticalAlignment="Center" Foreground="{ThemeResource HubTextBrush}" />
+                    </StackPanel>
+                    <FontIcon x:Name="NetworkIcon" Glyph="&#xE701;" FontSize="20" Foreground="{ThemeResource HubTextBrush}"
+                              ToolTipService.ToolTip="Netzwerk" />
+                    <Button x:Name="FullscreenButton" IsTabStop="False" Style="{StaticResource HubRoundButton}" Width="44" Height="44" CornerRadius="22"
+                            Background="Transparent" Click="FullscreenButton_Click" ToolTipService.ToolTip="Console Mode (F11)">
+                        <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="18" />
+                    </Button>
+                    <Button x:Name="SettingsButton" IsTabStop="False" Style="{StaticResource HubRoundButton}" Width="44" Height="44" CornerRadius="22"
+                            Background="Transparent" Click="SettingsButton_Click" ToolTipService.ToolTip="Einstellungen">
+                        <FontIcon Glyph="&#xE713;" FontSize="18" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <Frame x:Name="ContentFrame" Grid.Row="1" />
+
+            <!-- Fußleiste mit Tastenhinweisen -->
+            <Grid Grid.Row="2" Height="58" Margin="48,0,48,0" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource HubDividerBrush}">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Image Source="ms-appx:///Assets/hub-256.png" Width="26" Height="26" />
+                    <TextBlock Text="Emulator PC Hub" FontSize="14" VerticalAlignment="Center" Foreground="{ThemeResource HubSubtleBrush}" />
+                </StackPanel>
+                <TextBlock x:Name="HintsText" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="15"
+                           Foreground="{ThemeResource HubTextBrush}" />
+            </Grid>
+        </Grid>
+
+        <!-- Start-Overlay (Game-Launch-Pipeline) -->
+        <Grid x:Name="LaunchOverlay" Visibility="Collapsed" Background="{ThemeResource HubOverlayBrush}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14" MaxWidth="760">
+                <TextBlock x:Name="LaunchTitle" FontSize="44" FontWeight="Bold" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource HubTextBrush}" TextAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock x:Name="LaunchSubtitle" FontSize="20" HorizontalAlignment="Center" Foreground="{StaticResource HubAccentBrush}" />
+                <ProgressRing x:Name="LaunchRing" IsActive="False" Width="56" Height="56" Margin="0,18,0,8" Foreground="{StaticResource HubAccentBrush}" />
+                <TextBlock x:Name="LaunchStep" FontSize="17" HorizontalAlignment="Center" Foreground="{ThemeResource HubSubtleBrush}"
+                           TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock x:Name="LaunchHint" FontSize="14" HorizontalAlignment="Center" Foreground="{ThemeResource HubSubtleBrush}"
+                           Text="Spiel beenden: Home + Minus (Guide + View) 1,5 s halten" Margin="0,24,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Hinweis-Toast -->
+        <Border x:Name="Toast" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,96,0,0"
+                Background="{ThemeResource HubSurfaceBrush}" CornerRadius="24" Padding="24,12" BorderThickness="2"
+                BorderBrush="{StaticResource HubAccentBrush}">
+            <TextBlock x:Name="ToastText" FontSize="16" Foreground="{ThemeResource HubTextBrush}" TextWrapping="Wrap" MaxWidth="900" />
+        </Border>
+    </Grid>
+</Window>

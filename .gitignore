@@ -1,0 +1,45 @@
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+
+# Laufzeitdaten des Hubs (werden lokal erzeugt)
+/data/
+/Logs/
+/Backups/
+/App/
+/Library/
+*.lnk
+
+# Vom Nutzer selbst bereitgestellte Komponenten (Emulatoren, Tools, Mods, Pakete) – nie ins Repository
+/integrations/*
+!/integrations/README.md
+
+# Fremd-Binärdateien werden nicht mitgeliefert (siehe README → Bauen)
+src/EmulatorPCHub.Controllers/native/SDL3.dll
+src/EmulatorPCHub.Controllers/native/SDL3-LICENSE.txt
+
+# Nutzerinhalte – niemals committen
+*.iso
+*.wbfs
+*.rvz
+*.wua
+*.wud
+*.wux
+*.rpx
+*.nsp
+*.xci
+*.nca
+*.nds
+*.3ds
+*.cia
+*.keys
+*.bin
+*.zip
+*.7z
+
+# Interne Planungsnotizen
+/plan.md
+/docs/
+/Release/
