@@ -196,18 +196,20 @@ public sealed class MiiService
     /// </summary>
     public int SyncWiiMiisToSwitch()
     {
-        var wii = WiiMiiDatabase.Load(WiiDatabaseFile);
-        if (wii == null)
-            return 0;
-        ImportFromDolphin(); // auch in die Sammlung des Hubs
+        // Mii-Kanal (falls vorhanden) zuerst in die Hub-Sammlung übernehmen – danach gilt die Sammlung als Quelle,
+        // damit auch importierte Miis (z. B. auf einem PC ohne Mii-Kanal) auf die Switch kommen.
+        if (WiiMiiDatabase.Load(WiiDatabaseFile) != null)
+            ImportFromDolphin();
         var file = SwitchDatabaseFile;
         var db = SwitchMiiDatabase.LoadOrCreate(file);
         var changed = 0;
-        foreach (var (_, data) in wii.Miis())
+        foreach (var mii in _miis.ToList())
         {
+            var data = mii.Data;
             if (MiiCodec.Read(data) == null)
                 continue;
-            db.Upsert(MiiConvert.ToSwitchStoreData(data, MiiConvert.StableCreateId(data)), out var c);
+            var createId = mii.Format == MiiFormat.Wii ? MiiConvert.StableCreateId(data) : MiiConvert.StableCreateIdVer3(data);
+            db.Upsert(MiiConvert.ToSwitchStoreData(data, createId), out var c);
             if (c)
                 changed++;
         }
@@ -216,7 +218,7 @@ public sealed class MiiService
             if (File.Exists(file))
                 _backups.BackupFile(BackupCategory.Config, file, "eden-MiiDatabase");
             db.Save();
-            HubLog.Info($"Mii-Abgleich: {changed} Wii-Mii(s) in Edens Mii-Datenbank übernommen");
+            HubLog.Info($"Mii-Abgleich: {changed} Mii(s) in Edens Mii-Datenbank übernommen");
         }
         return changed;
     }

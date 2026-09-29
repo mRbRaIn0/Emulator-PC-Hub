@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.UI.Services;
 
@@ -18,7 +19,7 @@ public sealed partial class GameTileViewModel : ObservableObject
     }
 
     public string Id => Game.Id;
-    public string Title => Game.Title;
+    public string Title => Game.DisplayTitle;
     public string PlatformName => Game.Platform.DisplayName();
     public string PlatformShort => Game.Platform.ShortName();
     public string Accent => Game.Special switch
@@ -42,9 +43,9 @@ public sealed partial class GameTileViewModel : ObservableObject
             _ => "#FF333333",
         },
     };
-    public string? CoverPath => Game.CoverPath;
-    public string? BackgroundPath => Game.BackgroundPath ?? Game.CoverPath;
-    public bool HasCover => !string.IsNullOrEmpty(Game.CoverPath);
+    public string? CoverPath => Game.DisplayCoverPath;
+    public string? BackgroundPath => Game.BackgroundPath ?? Game.DisplayCoverPath;
+    public bool HasCover => !string.IsNullOrEmpty(Game.DisplayCoverPath);
     public bool IsFavorite => Game.IsFavorite;
     public string PlayTimeText => Format.PlayTime(Game.PlayTimeSeconds);
     public string LastPlayedText => Format.LastPlayed(Game.LastPlayed);
@@ -99,7 +100,7 @@ public sealed partial class HomeViewModel : ObservableObject
         ProfileName = _hub.Profiles.Active.Name;
         Avatar = _hub.Profiles.Active.Avatar;
         EmptyHint = Tiles.Count <= 2
-            ? "Tipp: Unter Einstellungen → Bibliothek deine Spieleordner eintragen – eigene Dumps werden automatisch erkannt."
+            ? Loc.T("Tipp: Unter Einstellungen → Bibliothek deine Spieleordner eintragen – eigene Dumps werden automatisch erkannt.")
             : "";
     }
 
@@ -111,7 +112,7 @@ public sealed partial class HomeViewModel : ObservableObject
             SpecialPage.MarioKart8Deluxe => _hub.Config.Current.MarioKart8Deluxe.Preset,
             _ => null,
         });
-        var status = g.IsPlaceholder ? "Eigenen Dump hinzufügen" : "";
+        var status = g.IsPlaceholder ? Loc.T("Eigenen Dump hinzufügen") : "";
         return new GameTileViewModel(g, preset.Name, status);
     }
 

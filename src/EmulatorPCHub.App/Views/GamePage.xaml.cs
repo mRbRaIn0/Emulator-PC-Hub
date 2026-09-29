@@ -55,7 +55,7 @@ public sealed partial class GamePage : Page, IHubPage
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.Children.Add(new GameTileView(tile, 220));
         var info = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
-        info.Children.Add(Ui.Title(g.Title));
+        info.Children.Add(Ui.Title(g.DisplayTitle));
         info.Children.Add(Ui.Subtle($"{g.Platform.DisplayName()}   ·   {g.GameCode ?? "ohne ID"}   ·   {Format.Size(g.FileSize)}"));
         info.Children.Add(Ui.Text($"Spielzeit: {Format.PlayTime(g.PlayTimeSeconds)}", 17, bold: true));
         info.Children.Add(Ui.Subtle(Format.LastPlayed(g.LastPlayed)));

@@ -19,6 +19,8 @@ public sealed class GameFileInfo
     public string? GameCode { get; set; }
     public string? HeaderTitle { get; set; }
     public long Size { get; set; }
+    /// <summary>Titel je Sprachcode aus den Metadaten (z. B. Wii-U-meta.xml).</summary>
+    public Dictionary<string, string> LocalizedTitles { get; } = [];
 
     // Switch
     public SwitchContentKind SwitchKind { get; set; }

@@ -2,6 +2,7 @@ using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.Emulation.Input;
 
@@ -70,10 +71,10 @@ public static class ControllerAdviceView
 
     public static string FitText(InputFit fit) => fit switch
     {
-        InputFit.Recommended => "Empfohlen",
-        InputFit.Works => "Geht",
-        InputFit.Limited => "Eingeschränkt",
-        _ => "Geht nicht",
+        InputFit.Recommended => Loc.T("Empfohlen"),
+        InputFit.Works => Loc.T("Geht"),
+        InputFit.Limited => Loc.T("Eingeschränkt"),
+        _ => Loc.T("Geht nicht"),
     };
 
     private static Border Chip(InputAdvice item, double size)

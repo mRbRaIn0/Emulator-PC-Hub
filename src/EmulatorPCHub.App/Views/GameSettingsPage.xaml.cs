@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Navigation;
 using EmulatorPCHub.App.Controls;
 using EmulatorPCHub.App.Services;
 using EmulatorPCHub.Controllers;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Logging;
 using EmulatorPCHub.Core.Models;
 
@@ -16,6 +17,7 @@ public sealed partial class GameSettingsPage : Page, IHubPage
 {
     private GameEntry? _game;
     private TextBox? _name;
+    private string _lang = HubLanguage.Primary;
 
     public string Hints => "Ⓐ Auswählen   Ⓑ Zurück";
 
@@ -27,6 +29,7 @@ public sealed partial class GameSettingsPage : Page, IHubPage
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         _game = App.Hub.Library.Find(e.Parameter as string ?? "");
+        _lang = HubLanguage.Primary;
         Build();
     }
 
@@ -49,9 +52,22 @@ public sealed partial class GameSettingsPage : Page, IHubPage
         Body.Children.Add(Ui.Title("Einstellungen"));
         Body.Children.Add(Ui.Subtle($"{g.Platform.DisplayName()}   ·   {g.GameCode ?? "ohne ID"}"));
 
+        // Sprache: Titel und Cover gelten pro Sprache
+        Body.Children.Add(Ui.Header("Titel & Cover pro Sprache"));
+        var languages = g.Languages.Available();
+        if (!languages.Contains(_lang))
+            _lang = languages[0];
+        Body.Children.Add(Ui.Dropdown("Sprache dieses Eintrags", languages.Select(l => (l, LanguageLabel(g, l))).ToList(), _lang, code =>
+        {
+            _lang = code;
+            Build(keepFocus: true);
+        }));
+        Body.Children.Add(Ui.Subtle("Titel und Cover lassen sich pro Sprache festlegen. Angezeigt wird die Variante der Erstsprache, " +
+                                    "sonst der Zweitsprache, sonst der Standard."));
+
         // Name
         Body.Children.Add(Ui.Header("Name im Hauptmenü"));
-        _name = new TextBox { Text = g.Title, MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left, FontSize = 17 };
+        _name = new TextBox { Text = TitleFor(g, _lang), MaxWidth = 520, HorizontalAlignment = HorizontalAlignment.Left, FontSize = 17 };
         _name.KeyDown += (_, e) =>
         {
             if (e.Key == Windows.System.VirtualKey.Enter)
@@ -62,7 +78,7 @@ public sealed partial class GameSettingsPage : Page, IHubPage
         };
         Body.Children.Add(_name);
         var nameButtons = new List<UIElement> { Ui.Action("Name speichern", "", SaveName, primary: true) };
-        if (g.CustomTitle)
+        if (g.Languages.Titles.ContainsKey(_lang) || g.CustomTitle)
             nameButtons.Add(Ui.AsyncAction("Originalnamen verwenden", "", ResetNameAsync));
         Body.Children.Add(Ui.Buttons([.. nameButtons]));
 
@@ -77,11 +93,12 @@ public sealed partial class GameSettingsPage : Page, IHubPage
             Background = new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(40, 255, 255, 255)),
             HorizontalAlignment = HorizontalAlignment.Left,
         };
-        if (g.CoverPath != null && File.Exists(g.CoverPath))
+        var cover = CoverFor(g, _lang);
+        if (cover != null && File.Exists(cover))
         {
             coverBox.Child = new Image
             {
-                Source = new BitmapImage(new Uri(g.CoverPath)) { CreateOptions = BitmapCreateOptions.IgnoreImageCache },
+                Source = new BitmapImage(new Uri(cover)) { CreateOptions = BitmapCreateOptions.IgnoreImageCache },
                 Stretch = Stretch.UniformToFill,
             };
         }
@@ -96,15 +113,18 @@ public sealed partial class GameSettingsPage : Page, IHubPage
             };
         }
         Body.Children.Add(coverBox);
-        Body.Children.Add(Ui.Subtle(g.CoverPath ?? "Standard-Kachel (kein Bild)"));
+        var ownCover = g.Languages.Covers.TryGetValue(_lang, out var lc) && File.Exists(lc) ? lc : null;
+        Body.Children.Add(Ui.Subtle(ownCover ?? (cover != null
+            ? "Kein eigenes Cover für diese Sprache – das Standard-Cover wird verwendet."
+            : "Standard-Kachel (kein Bild)")));
         var coverButtons = new List<UIElement> { Ui.AsyncAction("Bild wählen …", "", PickCoverAsync) };
-        if (g.CoverPath != null)
+        if (cover != null)
         {
             coverButtons.Add(Ui.AsyncAction("Ausschnitt anpassen …", "", RecropCoverAsync));
-            coverButtons.Add(Ui.Action("Bild im Explorer zeigen", "", () => SystemService.ShowInExplorer(g.CoverPath)));
+            coverButtons.Add(Ui.Action("Bild im Explorer zeigen", "", () => SystemService.ShowInExplorer(cover)));
             coverButtons.Add(Ui.Action("Cover entfernen", "", () =>
             {
-                App.Hub.Library.ResetCover(g);
+                App.Hub.Library.ResetCover(g, ownCover != null ? _lang : null);
                 MainWindow.Current.ShowToast("Cover entfernt");
                 Build(keepFocus: true);
             }));
@@ -138,10 +158,9 @@ public sealed partial class GameSettingsPage : Page, IHubPage
         if (_game == null || _name == null)
             return;
         var name = _name.Text.Trim();
-        if (name.Length == 0 || name == _game.Title)
+        if (name.Length == 0 || name == TitleFor(_game, _lang))
             return;
-        _game.Title = name;
-        _game.CustomTitle = true;
+        _game.Languages.Titles[_lang] = name;
         App.Hub.Library.Save(_game);
         MainWindow.Current.ShowToast("Name gespeichert ✓");
         Build(keepFocus: true);
@@ -151,10 +170,17 @@ public sealed partial class GameSettingsPage : Page, IHubPage
     {
         if (_game == null)
             return;
-        _game.CustomTitle = false;
-        App.Hub.Library.Save(_game);
-        await App.Hub.RefreshLibraryAsync(); // holt den Namen aus der Spieldatei zurück
-        _game = App.Hub.Library.Find(_game.Id) ?? _game;
+        if (_game.Languages.Titles.Remove(_lang))
+        {
+            App.Hub.Library.Save(_game);
+        }
+        else
+        {
+            _game.CustomTitle = false;
+            App.Hub.Library.Save(_game);
+            await App.Hub.RefreshLibraryAsync(); // holt den Namen aus der Spieldatei zurück
+            _game = App.Hub.Library.Find(_game.Id) ?? _game;
+        }
         Build(keepFocus: true);
     }
 
@@ -172,7 +198,8 @@ public sealed partial class GameSettingsPage : Page, IHubPage
     {
         if (_game == null)
             return;
-        var source = App.Hub.Library.CoverSourcePath(_game) ?? _game.CoverPath;
+        var ownLang = _game.Languages.Covers.ContainsKey(_lang) ? _lang : null;
+        var source = App.Hub.Library.CoverSourcePath(_game, ownLang) ?? CoverFor(_game, _lang);
         if (source != null && File.Exists(source))
             await CropAndSaveAsync(source);
     }
@@ -187,8 +214,8 @@ public sealed partial class GameSettingsPage : Page, IHubPage
             cropped = await CoverCropDialog.ShowAsync(source);
             if (cropped == null)
                 return;
-            App.Hub.Library.SetCoverSource(_game, source);
-            App.Hub.Library.SetCover(_game, cropped);
+            App.Hub.Library.SetCoverSource(_game, source, _lang);
+            App.Hub.Library.SetCover(_game, cropped, _lang);
             MainWindow.Current.ShowToast("Cover gespeichert ✓");
         }
         catch (Exception ex)
@@ -202,6 +229,32 @@ public sealed partial class GameSettingsPage : Page, IHubPage
                 File.Delete(cropped);
         }
         Build(keepFocus: true);
+    }
+
+    /// <summary>Titel in einer Sprache: eigener Titel, erkannter Titel, sonst der Standardname.</summary>
+    private static string TitleFor(GameEntry g, string lang)
+    {
+        if (g.Languages.Titles.TryGetValue(lang, out var custom) && !string.IsNullOrWhiteSpace(custom))
+            return custom;
+        if (!g.CustomTitle && g.Languages.DetectedTitles.TryGetValue(lang, out var detected) && !string.IsNullOrWhiteSpace(detected))
+            return detected;
+        return g.Title;
+    }
+
+    /// <summary>Cover in einer Sprache; ohne Sprachvariante das Standard-Cover.</summary>
+    private static string? CoverFor(GameEntry g, string lang) =>
+        g.Languages.Covers.TryGetValue(lang, out var c) && File.Exists(c) ? c : g.CoverPath;
+
+    private static string LanguageLabel(GameEntry g, string lang)
+    {
+        var label = HubLanguage.Name(lang);
+        if (lang == HubLanguage.Primary)
+            label += " · " + Loc.T("Erstsprache");
+        else if (lang == HubLanguage.Secondary)
+            label += " · " + Loc.T("Zweitsprache");
+        if (g.Languages.Titles.ContainsKey(lang) || g.Languages.Covers.ContainsKey(lang) || g.Languages.DetectedTitles.ContainsKey(lang))
+            label += "  ●";
+        return label;
     }
 
     public bool HandleNav(NavAction action) => false;

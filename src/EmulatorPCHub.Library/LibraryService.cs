@@ -112,6 +112,8 @@ public sealed class LibraryService
                 old.GameCode = found.GameCode;
                 old.Platform = found.Platform;
                 old.FileSize = found.FileSize;
+                old.Languages.Detected = found.Languages.Detected;
+                old.Languages.DetectedTitles = found.Languages.DetectedTitles;
                 if (string.IsNullOrEmpty(old.EmulatorId) || old.EmulatorId == EmulatorIds.BuiltIn)
                     old.EmulatorId = found.EmulatorId;
                 merged.Add(old);
@@ -192,6 +194,14 @@ public sealed class LibraryService
         g.CoverPath = FirstExisting(dir, "cover") ?? SideBySide(g.Path, "") ?? SideBySide(g.Path, ".cover") ?? g.CoverPath;
         g.BackgroundPath = FirstExisting(dir, "background") ?? SideBySide(g.Path, ".background") ?? g.BackgroundPath;
         g.IconPath = FirstExisting(dir, "icon") ?? g.IconPath;
+        foreach (var lang in g.Languages.Covers.Keys.ToList())
+        {
+            var p = FirstExisting(dir, "cover." + lang);
+            if (p == null)
+                g.Languages.Covers.Remove(lang);
+            else
+                g.Languages.Covers[lang] = p;
+        }
         if (g.CoverPath != null && !File.Exists(g.CoverPath))
             g.CoverPath = null;
         if (g.BackgroundPath != null && !File.Exists(g.BackgroundPath))
@@ -239,51 +249,61 @@ public sealed class LibraryService
     }
 
     /// <summary>Eigenes Cover: Bild wird in den Artwork-Ordner des Spiels kopiert (hat dort Vorrang).</summary>
-    public void SetCover(GameEntry g, string imageFile)
+    public void SetCover(GameEntry g, string imageFile, string? language = null)
     {
         var dir = ArtworkDir(g);
         Directory.CreateDirectory(dir);
-        RemoveCustomCoverFiles(dir);
-        var target = Path.Combine(dir, "cover" + Path.GetExtension(imageFile).ToLowerInvariant());
+        var baseName = CoverBaseName(language);
+        RemoveFiles(dir, baseName);
+        var target = Path.Combine(dir, baseName + Path.GetExtension(imageFile).ToLowerInvariant());
         File.Copy(imageFile, target, overwrite: true);
-        g.CoverPath = target;
+        if (language == null)
+            g.CoverPath = target;
+        else
+            g.Languages.Covers[language] = target;
         Save(g);
     }
 
+    /// <summary>Dateiname-Stamm: "cover" (Standard) bzw. "cover.de" (Sprachvariante).</summary>
+    private static string CoverBaseName(string? language, string prefix = "cover") =>
+        string.IsNullOrEmpty(language) ? prefix : prefix + "." + language;
+
     /// <summary>Originalbild eines eigenen Covers merken, damit der quadratische Ausschnitt später neu gewählt werden kann.</summary>
-    public void SetCoverSource(GameEntry g, string imageFile)
+    public void SetCoverSource(GameEntry g, string imageFile, string? language = null)
     {
         var dir = ArtworkDir(g);
         Directory.CreateDirectory(dir);
-        var target = Path.Combine(dir, "cover-source" + Path.GetExtension(imageFile).ToLowerInvariant());
+        var baseName = CoverBaseName(language, "cover-source");
+        var target = Path.Combine(dir, baseName + Path.GetExtension(imageFile).ToLowerInvariant());
         if (string.Equals(Path.GetFullPath(imageFile), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase))
             return;
-        RemoveCoverSourceFiles(dir);
+        RemoveFiles(dir, baseName);
         File.Copy(imageFile, target, overwrite: true);
     }
 
     /// <summary>Gemerktes Originalbild des Covers (oder null).</summary>
-    public string? CoverSourcePath(GameEntry g)
+    public string? CoverSourcePath(GameEntry g, string? language = null)
     {
         var dir = ArtworkDir(g);
-        return CoverExtensions.Select(ext => Path.Combine(dir, "cover-source" + ext)).FirstOrDefault(File.Exists);
+        var baseName = CoverBaseName(language, "cover-source");
+        return CoverExtensions.Select(ext => Path.Combine(dir, baseName + ext)).FirstOrDefault(File.Exists);
     }
 
     /// <summary>Eigenes Cover entfernen – danach gilt wieder ein Cover neben der Spieldatei (falls vorhanden).</summary>
-    public void ResetCover(GameEntry g)
+    public void ResetCover(GameEntry g, string? language = null)
     {
-        RemoveCustomCoverFiles(ArtworkDir(g));
-        RemoveCoverSourceFiles(ArtworkDir(g));
-        g.CoverPath = null;
+        var dir = ArtworkDir(g);
+        RemoveFiles(dir, CoverBaseName(language));
+        RemoveFiles(dir, CoverBaseName(language, "cover-source"));
+        if (language == null)
+            g.CoverPath = null;
+        else
+            g.Languages.Covers.Remove(language);
         ResolveArtwork(g);
         Save(g);
     }
 
     private static readonly string[] CoverExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-
-    private static void RemoveCustomCoverFiles(string dir) => RemoveFiles(dir, "cover");
-
-    private static void RemoveCoverSourceFiles(string dir) => RemoveFiles(dir, "cover-source");
 
     private static void RemoveFiles(string dir, string baseName)
     {
@@ -349,7 +369,7 @@ public sealed class LibraryService
             .OrderByDescending(g => g.LastPlayed ?? DateTimeOffset.MinValue)
             .ThenByDescending(g => g.Special != SpecialPage.None)
             .ThenByDescending(g => g.IsFavorite)
-            .ThenBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(g => g.DisplayTitle, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
 }

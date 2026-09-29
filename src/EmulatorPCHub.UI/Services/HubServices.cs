@@ -45,6 +45,8 @@ public sealed class HubServices
         Backups = new BackupService(paths.Backups);
         Config = new ConfigService(paths, Backups);
         Config.Load();
+        HubLanguage.Apply(Config.Current.Ui);
+        Config.Changed += (_, _) => HubLanguage.Apply(Config.Current.Ui);
         LaunchLog = new LaunchLog(paths.Logs);
         Library = new LibraryService(new LibraryDatabase(paths.LibraryDb), paths, Config);
         Adapters = new AdapterRegistry(paths, Config, Backups);
@@ -155,7 +157,7 @@ public sealed class HubServices
         }
         if (adapter.Id == EmulatorIds.Switch)
         {
-            // neue/geänderte Miis aus dem Wii-Mii-Kanal automatisch auf die Switch übernehmen
+            // neue/geänderte Miis (Hub-Sammlung + Wii-Mii-Kanal) automatisch auf die Switch übernehmen
             try { Miis.SyncWiiMiisToSwitch(); }
             catch (Exception ex) { HubLog.Warn("Mii-Abgleich mit Eden fehlgeschlagen", ex); }
         }

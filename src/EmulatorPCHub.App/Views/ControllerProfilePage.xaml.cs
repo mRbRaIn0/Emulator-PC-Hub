@@ -47,7 +47,7 @@ public sealed partial class ControllerProfilePage : Page, IHubPage
         Body.Children.Clear();
         var store = App.Hub.Input.Profiles;
         var own = _game != null && store.HasOwnProfile(_gameId);
-        Body.Children.Add(Ui.Title(_game == null ? "Controller – Standardprofil" : $"Controller – {_game.Title}"));
+        Body.Children.Add(Ui.Title(_game == null ? "Controller – Standardprofil" : $"Controller – {_game.DisplayTitle}"));
         Body.Children.Add(Ui.Subtle(_game == null
             ? "Gilt für alle Spiele ohne eigenes Profil."
             : own ? $"Eigenes Profil · Emulator: {BackendName(Backend)}" : $"Nutzt das Standardprofil · Emulator: {BackendName(Backend)}"));

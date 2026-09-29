@@ -206,7 +206,7 @@ public sealed partial class ControllersPage : Page, IHubPage
         {
             var game = g;
             var own = App.Hub.Input.Profiles.HasOwnProfile(game.Id);
-            return (UIElement)Ui.Action($"{game.Title}  ·  {game.Platform.ShortName()}" + (own ? "  ●" : ""), null,
+            return (UIElement)Ui.Action($"{game.DisplayTitle}  ·  {game.Platform.ShortName()}" + (own ? "  ●" : ""), null,
                 () => MainWindow.Current.Navigate(typeof(ControllerProfilePage), game.Id));
         }).ToArray();
         Body.Children.Add(Roomy(Ui.Card(

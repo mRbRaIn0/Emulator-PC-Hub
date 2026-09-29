@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.UI.ViewModels;
 using Windows.UI;
@@ -150,7 +151,7 @@ public sealed class GameTileView : Grid
                 Padding = new Thickness(10, 6, 10, 6),
                 Child = new TextBlock
                 {
-                    Text = "Einrichtung nötig",
+                    Text = Loc.T("Einrichtung nötig"),
                     FontSize = 13,
                     Foreground = new SolidColorBrush(Colors.White),
                 },

@@ -74,12 +74,12 @@ public sealed partial class SavesPage : Page, IHubPage
             .Select(g => (Game: g, Has: SafeHas(g), Snapshots: App.Hub.Saves.Snapshots(g, _profile.Id).Count))
             .OrderByDescending(r => r.Has || r.Snapshots > 0)
             .ThenByDescending(r => r.Game.LastPlayed ?? DateTimeOffset.MinValue)
-            .ThenBy(r => r.Game.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(r => r.Game.DisplayTitle, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
         foreach (var (g, has, snaps) in rows)
         {
             var status = has ? "Spielstand vorhanden" : SaveManager.Unsupported(g) ?? "Noch kein Spielstand";
-            var b = Ui.Action($"{g.Title}   ·   {g.Platform.ShortName()}   ·   {status}" + (snaps > 0 ? $"   ·   {snaps} Sicherung(en)" : ""),
+            var b = Ui.Action($"{g.DisplayTitle}   ·   {g.Platform.ShortName()}   ·   {status}" + (snaps > 0 ? $"   ·   {snaps} Sicherung(en)" : ""),
                 has ? "" : "", () => MainWindow.Current.Navigate(typeof(SavesPage), g.Id));
             b.HorizontalAlignment = HorizontalAlignment.Stretch;
             b.HorizontalContentAlignment = HorizontalAlignment.Left;
@@ -95,7 +95,7 @@ public sealed partial class SavesPage : Page, IHubPage
 
     private void BuildGame(GameEntry g)
     {
-        Body.Children.Add(Ui.Title("Spielstände – " + g.Title));
+        Body.Children.Add(Ui.Title("Spielstände – " + g.DisplayTitle));
         Body.Children.Add(Ui.Subtle($"{g.Platform.DisplayName()}   ·   {g.GameCode ?? "ohne ID"}"));
         Body.Children.Add(ProfileSwitcher());
 

@@ -130,6 +130,10 @@ public sealed class UiConfig
     [JsonPropertyName("autostart")] public bool Autostart { get; set; }
     [JsonPropertyName("showSpecialTiles")] public bool ShowSpecialTiles { get; set; } = true;
     [JsonPropertyName("clock24h")] public bool Clock24h { get; set; } = true;
+    /// <summary>Erstsprache (Oberfläche, Spieltitel, Cover), z. B. "de" oder "en".</summary>
+    [JsonPropertyName("primaryLanguage")] public string PrimaryLanguage { get; set; } = "de";
+    /// <summary>Zweitsprache – wird genutzt, wenn ein Spiel keine Titel/Cover in der Erstsprache hat.</summary>
+    [JsonPropertyName("secondaryLanguage")] public string SecondaryLanguage { get; set; } = "en";
 }
 
 public sealed class MarioKartWiiConfig

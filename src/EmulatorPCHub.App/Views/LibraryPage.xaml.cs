@@ -52,7 +52,7 @@ public sealed partial class LibraryPage : Page, IHubPage
         }
         Body.Children.Add(filterRow);
 
-        var games = App.Hub.Library.Games.Where(Matches).OrderBy(g => g.Title, StringComparer.CurrentCultureIgnoreCase).ToList();
+        var games = App.Hub.Library.Games.Where(Matches).OrderBy(g => g.DisplayTitle, StringComparer.CurrentCultureIgnoreCase).ToList();
         if (_filter == "recent")
             games = games.Where(g => g.LastPlayed != null).OrderByDescending(g => g.LastPlayed).ToList();
         Body.Children.Add(Ui.Subtle($"{games.Count} Spiele"));
@@ -72,7 +72,7 @@ public sealed partial class LibraryPage : Page, IHubPage
                 Style = (Style)Application.Current.Resources["HubButton"],
                 CornerRadius = new CornerRadius(6),
             };
-            ToolTipService.SetToolTip(button, g.Title);
+            ToolTipService.SetToolTip(button, g.DisplayTitle);
             button.Click += (_, _) => Open(g);
             view.Clicked += _ => Open(g);
             grid.Children.Add(button);
@@ -98,7 +98,7 @@ public sealed partial class LibraryPage : Page, IHubPage
     {
         MainWindow.Current.Sounds.Play(UiSound.Select);
         var info = $"{g.Platform.DisplayName()}   ·   {g.GameCode ?? "ohne ID"}" + (g.HiddenOnHome ? "   ·   im Hauptmenü ausgeblendet" : "");
-        var result = await Dialogs.ShowAsync(g.Title, info, "Spiel starten", "Abbrechen", "Einstellungen");
+        var result = await Dialogs.ShowAsync(g.DisplayTitle, info, "Spiel starten", "Abbrechen", "Einstellungen");
         if (result == ContentDialogResult.Primary)
             Start(g);
         else if (result == ContentDialogResult.Secondary)

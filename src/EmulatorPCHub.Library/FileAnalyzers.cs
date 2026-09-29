@@ -238,6 +238,13 @@ public static partial class SwitchFileReader
 /// <summary>Liest meta.xml von entpackten Wii-U-Spielen (Cemu-Format).</summary>
 public static class WiiUMetaReader
 {
+    /// <summary>meta.xml-Suffix → Sprachcode.</summary>
+    private static readonly (string tag, string code)[] MetaLanguages =
+    [
+        ("ja", "ja"), ("en", "en"), ("fr", "fr"), ("de", "de"), ("it", "it"), ("es", "es"),
+        ("zhs", "zh"), ("ko", "ko"), ("nl", "nl"), ("pt", "pt"), ("ru", "ru"),
+    ];
+
     public static GameFileInfo? ReadFromRpx(string rpxPath)
     {
         var codeDir = System.IO.Path.GetDirectoryName(rpxPath);

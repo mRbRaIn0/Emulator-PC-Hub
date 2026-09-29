@@ -96,7 +96,7 @@ public sealed class LibraryDatabase
             while (r.Read())
                 columns.Add(r.GetString(1));
         }
-        foreach (var (name, sql) in new[] { ("custom_title", "INTEGER NOT NULL DEFAULT 0"), ("hidden", "INTEGER NOT NULL DEFAULT 0") })
+        foreach (var (name, sql) in new[] { ("custom_title", "INTEGER NOT NULL DEFAULT 0"), ("hidden", "INTEGER NOT NULL DEFAULT 0"), ("lang_data", "TEXT") })
         {
             if (columns.Contains(name))
                 continue;
@@ -154,6 +154,7 @@ public sealed class LibraryDatabase
                 IsPlaceholder = r.GetInt32(r.GetOrdinal("placeholder")) != 0,
                 CustomTitle = r.GetInt32(r.GetOrdinal("custom_title")) != 0,
                 HiddenOnHome = r.GetInt32(r.GetOrdinal("hidden")) != 0,
+                Languages = ParseLanguages(S("lang_data")),
             });
         }
         return list;
@@ -181,9 +182,9 @@ public sealed class LibraryDatabase
         cmd.CommandText = """
             INSERT INTO games (id, title, platform, path, game_code, cover, background, icon, emulator, active_preset,
                 last_played, playtime, favorite, controller_profile, graphics_profile, save_path, special, added_at,
-                file_size, placeholder, missing, custom_title, hidden)
+                file_size, placeholder, missing, custom_title, hidden, lang_data)
             VALUES ($id, $title, $platform, $path, $code, $cover, $bg, $icon, $emu, $preset, $last, $play, $fav,
-                $ctrl, $gfx, $save, $special, $added, $size, $ph, 0, $custom, $hidden)
+                $ctrl, $gfx, $save, $special, $added, $size, $ph, 0, $custom, $hidden, $lang)
             ON CONFLICT(id) DO UPDATE SET
                 title = excluded.title, platform = excluded.platform, path = excluded.path, game_code = excluded.game_code,
                 cover = excluded.cover, background = excluded.background, icon = excluded.icon, emulator = excluded.emulator,
@@ -191,7 +192,7 @@ public sealed class LibraryDatabase
                 favorite = excluded.favorite, controller_profile = excluded.controller_profile,
                 graphics_profile = excluded.graphics_profile, save_path = excluded.save_path, special = excluded.special,
                 file_size = excluded.file_size, placeholder = excluded.placeholder, missing = 0,
-                custom_title = excluded.custom_title, hidden = excluded.hidden;
+                custom_title = excluded.custom_title, hidden = excluded.hidden, lang_data = excluded.lang_data;
             """;
         cmd.Parameters.AddWithValue("$id", g.Id);
         cmd.Parameters.AddWithValue("$title", g.Title);
@@ -215,7 +216,22 @@ public sealed class LibraryDatabase
         cmd.Parameters.AddWithValue("$ph", g.IsPlaceholder ? 1 : 0);
         cmd.Parameters.AddWithValue("$custom", g.CustomTitle ? 1 : 0);
         cmd.Parameters.AddWithValue("$hidden", g.HiddenOnHome ? 1 : 0);
+        cmd.Parameters.AddWithValue("$lang", System.Text.Json.JsonSerializer.Serialize(g.Languages));
         cmd.ExecuteNonQuery();
+    }
+
+    private static GameLanguageData ParseLanguages(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new GameLanguageData();
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<GameLanguageData>(json) ?? new GameLanguageData();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return new GameLanguageData();
+        }
     }
 
     /// <summary>Markiert Spiele als fehlend, die beim Scan nicht mehr gefunden wurden (Spielzeit bleibt erhalten).</summary>

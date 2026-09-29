@@ -36,7 +36,7 @@
                         <TextBlock x:Name="InfoPreset" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource HubTextBrush}" />
                     </StackPanel>
                     <StackPanel Spacing="2">
-                        <TextBlock Text="Spielzeit" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
+                        <TextBlock x:Name="LabelPlaytime" Text="Spielzeit" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
                         <TextBlock x:Name="InfoPlaytime" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource HubTextBrush}" />
                     </StackPanel>
                     <StackPanel Spacing="2">
@@ -44,11 +44,11 @@
                         <TextBlock x:Name="InfoLast" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource HubTextBrush}" />
                     </StackPanel>
                     <StackPanel Spacing="2">
-                        <TextBlock Text="Startet mit" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
+                        <TextBlock x:Name="LabelLaunchesWith" Text="Startet mit" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
                         <TextBlock x:Name="InfoEmulator" FontSize="18" FontWeight="SemiBold" Foreground="{ThemeResource HubTextBrush}" />
                     </StackPanel>
                     <StackPanel Spacing="2">
-                        <TextBlock Text="Controller-Empfehlung" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
+                        <TextBlock x:Name="LabelControllers" Text="Controller-Empfehlung" FontSize="15" Foreground="{ThemeResource HubSubtleBrush}" />
                         <StackPanel x:Name="InfoControllers" Orientation="Horizontal" Spacing="6" />
                     </StackPanel>
                 </StackPanel>

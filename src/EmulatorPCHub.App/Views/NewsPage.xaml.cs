@@ -62,7 +62,7 @@ public sealed partial class NewsPage : Page, IHubPage
             Ui.Subtle($"{games.Count(g => !g.IsPlaceholder)} Spiele in der Bibliothek · {games.Count(g => g.IsFavorite)} Favoriten"),
         };
         foreach (var g in top)
-            stats.Add(Ui.Text($"{g.Title}: {Format.PlayTime(g.PlayTimeSeconds)}"));
+            stats.Add(Ui.Text($"{g.DisplayTitle}: {Format.PlayTime(g.PlayTimeSeconds)}"));
         Body.Children.Add(Ui.Card([.. stats]));
 
         Body.Children.Add(Ui.Header("Tipps"));

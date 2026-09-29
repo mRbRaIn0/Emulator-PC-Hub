@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Storage.Pickers;
+using EmulatorPCHub.Core;
 
 namespace EmulatorPCHub.App.Services;
 
@@ -24,6 +25,10 @@ public static class Dialogs
     {
         if (Root == null)
             return ContentDialogResult.None;
+        title = Loc.T(title);
+        primary = primary == null ? null : Loc.T(primary);
+        close = close == null ? null : Loc.T(close);
+        secondary = secondary == null ? null : Loc.T(secondary);
         Current?.Hide();
         var theme = (Root.Content as FrameworkElement)?.ActualTheme ?? ElementTheme.Default;
         var dialog = new ContentDialog
@@ -41,7 +46,7 @@ public static class Dialogs
             Content = content is string s
                 ? new ScrollViewer
                 {
-                    Content = new TextBlock { Text = s, TextWrapping = TextWrapping.Wrap, FontSize = 17, Foreground = ThemeBrush("HubSubtleBrush", theme) },
+                    Content = new TextBlock { Text = Loc.T(s), TextWrapping = TextWrapping.Wrap, FontSize = 17, Foreground = ThemeBrush("HubSubtleBrush", theme) },
                     MaxHeight = 460,
                 }
                 : content,
@@ -114,13 +119,13 @@ public static class Dialogs
         var chosen = -1;
         var panel = new StackPanel { Spacing = 6, MinWidth = 380 };
         if (text != null)
-            panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 0, 0, 6) });
+            panel.Children.Add(new TextBlock { Text = Loc.T(text), TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 0, 0, 6) });
         for (var i = 0; i < options.Count; i++)
         {
             var index = i;
             var b = new Button
             {
-                Content = options[i],
+                Content = Loc.T(options[i]),
                 Style = (Style)Application.Current.Resources["HubOptionButton"],
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 FontSize = 16,
@@ -140,7 +145,7 @@ public static class Dialogs
     /// <summary>Texteingabe; null = abgebrochen.</summary>
     public static async Task<string?> InputAsync(string title, string header, string value = "", int maxLength = 0)
     {
-        var box = new TextBox { Header = header, Text = value, MinWidth = 360, MaxLength = maxLength };
+        var box = new TextBox { Header = Loc.T(header), Text = value, MinWidth = 360, MaxLength = maxLength };
         return await ShowAsync(title, box, "OK", "Abbrechen") == ContentDialogResult.Primary ? box.Text.Trim() : null;
     }
 

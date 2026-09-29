@@ -112,7 +112,7 @@ public sealed class GameScanner
                 return;
             var title = TitleDatabase.LookupDisc(info?.GameCode)
                         ?? (string.IsNullOrWhiteSpace(info?.HeaderTitle) ? TitleDatabase.CleanFileName(file) : info!.HeaderTitle!);
-            AddGame(result, file, platform.Value, info?.GameCode, title, info?.Size ?? SafeSize(file));
+            AddGame(result, file, platform.Value, info?.GameCode, title, info?.Size ?? SafeSize(file), null);
             return;
         }
 
@@ -122,11 +122,13 @@ public sealed class GameScanner
                 return;
             string title;
             string? code = null;
+            Dictionary<string, string>? localized = null;
             if (ext.Equals(".rpx", StringComparison.OrdinalIgnoreCase))
             {
                 var meta = WiiUMetaReader.ReadFromRpx(file);
                 title = meta?.HeaderTitle ?? TitleDatabase.CleanFileName(file);
                 code = meta?.GameCode;
+                localized = meta?.LocalizedTitles;
                 // Updates (0005000E) und DLCs (0005000C) sind keine eigenen Spiele
                 if (code is { Length: 16 } && (code.StartsWith("0005000E") || code.StartsWith("0005000C")))
                     return;
@@ -135,7 +137,7 @@ public sealed class GameScanner
             {
                 title = TitleDatabase.CleanFileName(file);
             }
-            AddGame(result, file, HubPlatform.WiiU, code, title, SafeSize(file));
+            AddGame(result, file, HubPlatform.WiiU, code, title, SafeSize(file), localized);
             return;
         }
 
@@ -145,7 +147,7 @@ public sealed class GameScanner
             if (rootPlatform is not null && rootPlatform != platform)
                 return;
             var code = platform == HubPlatform.DS ? ReadDsGameCode(file) : ReadThreeDsTitleId(file);
-            AddGame(result, file, platform, code, TitleDatabase.CleanFileName(file), SafeSize(file));
+            AddGame(result, file, platform, code, TitleDatabase.CleanFileName(file), SafeSize(file), null);
             return;
         }
 
@@ -166,7 +168,8 @@ public sealed class GameScanner
         }
     }
 
-    private static void AddGame(ScanResult result, string file, HubPlatform platform, string? code, string title, long size)
+    private static void AddGame(ScanResult result, string file, HubPlatform platform, string? code, string title, long size,
+        Dictionary<string, string>? localizedTitles = null)
     {
         var special = TitleDatabase.DetectSpecial(platform, code, title);
         var key = !string.IsNullOrEmpty(code) ? code.ToUpperInvariant()
@@ -183,7 +186,33 @@ public sealed class GameScanner
             EmulatorId = platform.DefaultAdapterId(),
             Special = special,
             FileSize = size,
+            Languages = DetectLanguages(platform, code, localizedTitles),
         });
+    }
+
+    /// <summary>Sprachen eines Spiels: Wii U aus meta.xml, GameCube/Wii aus dem Regionsbuchstaben der Disc-ID.</summary>
+    private static GameLanguageData DetectLanguages(HubPlatform platform, string? code, Dictionary<string, string>? localizedTitles)
+    {
+        var data = new GameLanguageData();
+        if (localizedTitles != null)
+        {
+            foreach (var (lang, t) in localizedTitles)
+            {
+                data.DetectedTitles[lang] = t;
+                data.Detected.Add(lang);
+            }
+        }
+        else if (platform is HubPlatform.GameCube or HubPlatform.Wii && code is { Length: >= 4 })
+        {
+            // PAL-Discs ('P') sind mehrsprachig – welche Sprachen genau, steht nicht im Header.
+            var lang = char.ToUpperInvariant(code[3]) switch
+            {
+                'E' or 'U' => "en", 'J' => "ja", 'K' => "ko", 'D' => "de", 'F' => "fr", 'S' => "es", 'I' => "it", 'H' => "nl", _ => null,
+            };
+            if (lang != null)
+                data.Detected.Add(lang);
+        }
+        return data;
     }
 
     /// <summary>Bevorzugte Formate zuerst (komprimiert/vollständig vor Rohformaten).</summary>

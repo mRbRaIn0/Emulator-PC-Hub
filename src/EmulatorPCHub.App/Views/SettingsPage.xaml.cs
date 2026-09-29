@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Navigation;
 using EmulatorPCHub.App.Controls;
 using EmulatorPCHub.App.Services;
 using EmulatorPCHub.Controllers;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
 
 namespace EmulatorPCHub.App.Views;
@@ -81,8 +82,26 @@ public sealed partial class SettingsPage : Page, IHubPage
     private static Core.Config.HubConfig Cfg => App.Hub.Config.Current;
     private static void Save(Action<Core.Config.HubConfig> change) => App.Hub.Config.Update(change);
 
+    private static IReadOnlyList<(string code, string label)> LanguageOptions() =>
+        HubLanguage.Names.Select(kv => (kv.Key, kv.Value)).ToList();
+
     private void General()
     {
+        Body.Children.Add(Ui.Header("Sprache"));
+        Body.Children.Add(Ui.Card(
+            Ui.Dropdown("Erstsprache", LanguageOptions(), Cfg.Ui.PrimaryLanguage, code =>
+            {
+                Save(c => c.Ui.PrimaryLanguage = code);
+                Build(keepFocus: true);
+            }),
+            Ui.Dropdown("Zweitsprache", LanguageOptions(), Cfg.Ui.SecondaryLanguage, code =>
+            {
+                Save(c => c.Ui.SecondaryLanguage = code);
+                Build(keepFocus: true);
+            }),
+            Ui.Subtle("Die Oberfläche gibt es auf Deutsch und Englisch (Erstsprache, sonst Zweitsprache). Titel und Cover der Spiele " +
+                      "werden in der Erstsprache angezeigt; fehlt sie für ein Spiel, wird die Zweitsprache genutzt. " +
+                      "Pro Spiel lässt sich das unter „Alle Spiele“ → Einstellungen ändern.")));
         Body.Children.Add(Ui.Card(
             Ui.Toggle("Beim Start im Console Mode (randloses Vollbild)", Cfg.Ui.StartupMode == "console",
                 v => Save(c => c.Ui.StartupMode = v ? "console" : "desktop")),

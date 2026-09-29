@@ -9,6 +9,32 @@ public enum SpecialPage
     HubKart,
 }
 
+/// <summary>Sprachvarianten eines Spiels (Codes wie "de", "en", "ja").</summary>
+public sealed class GameLanguageData
+{
+    /// <summary>Sprachen, die das Spiel laut Datei/Metadaten mitbringt.</summary>
+    public List<string> Detected { get; set; } = [];
+
+    /// <summary>Aus den Metadaten gelesene Titel (bei jedem Scan neu gesetzt).</summary>
+    public Dictionary<string, string> DetectedTitles { get; set; } = [];
+
+    /// <summary>Vom Nutzer vergebene Titel.</summary>
+    public Dictionary<string, string> Titles { get; set; } = [];
+
+    /// <summary>Eigene Cover pro Sprache (Dateipfade).</summary>
+    public Dictionary<string, string> Covers { get; set; } = [];
+
+    /// <summary>Alle für dieses Spiel wählbaren Sprachen: erkannte + Erst-/Zweitsprache + bereits angepasste.</summary>
+    public List<string> Available()
+    {
+        var list = new List<string>();
+        foreach (var l in HubLanguage.Preferred().Concat(Detected).Concat(DetectedTitles.Keys).Concat(Titles.Keys).Concat(Covers.Keys))
+            if (!list.Contains(l))
+                list.Add(l);
+        return list;
+    }
+}
+
 /// <summary>Ein Bibliothekseintrag (Plan Abschnitt 11).</summary>
 public sealed class GameEntry
 {
@@ -48,6 +74,37 @@ public sealed class GameEntry
 
     /// <summary>Eintrag existiert nur als Platzhalter (z. B. Mario Kart Wii ohne erkannten Dump).</summary>
     public bool IsPlaceholder { get; set; }
+
+    /// <summary>Titel/Cover pro Sprache (erkannt und vom Nutzer gesetzt).</summary>
+    public GameLanguageData Languages { get; set; } = new();
+
+    /// <summary>Angezeigter Titel gemäß Erst-/Zweitsprache; ohne passende Variante der normale <see cref="Title"/>.</summary>
+    public string DisplayTitle
+    {
+        get
+        {
+            foreach (var lang in HubLanguage.Preferred())
+            {
+                if (Languages.Titles.TryGetValue(lang, out var custom) && !string.IsNullOrWhiteSpace(custom))
+                    return custom;
+                if (!CustomTitle && Languages.DetectedTitles.TryGetValue(lang, out var detected) && !string.IsNullOrWhiteSpace(detected))
+                    return detected;
+            }
+            return Title;
+        }
+    }
+
+    /// <summary>Angezeigtes Cover gemäß Erst-/Zweitsprache; ohne passende Variante das normale <see cref="CoverPath"/>.</summary>
+    public string? DisplayCoverPath
+    {
+        get
+        {
+            foreach (var lang in HubLanguage.Preferred())
+                if (Languages.Covers.TryGetValue(lang, out var cover) && File.Exists(cover))
+                    return cover;
+            return CoverPath;
+        }
+    }
 
     public TimeSpan PlayTime => TimeSpan.FromSeconds(PlayTimeSeconds);
 

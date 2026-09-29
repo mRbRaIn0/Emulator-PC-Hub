@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using EmulatorPCHub.App.Controls;
 using EmulatorPCHub.App.Services;
 using EmulatorPCHub.Controllers;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.UI.ViewModels;
 
@@ -92,7 +93,7 @@ public sealed partial class HomePage : Page, IHubPage
             };
             var text = new TextBlock
             {
-                Text = label,
+                Text = Loc.T(label),
                 FontSize = 13,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Foreground = (Brush)Application.Current.Resources["HubAccentBrush"],
@@ -126,21 +127,24 @@ public sealed partial class HomePage : Page, IHubPage
     {
         SelectedTitle.Text = tile.Title;
         InfoPlatform.Text = tile.PlatformName;
-        InfoPreset.Text = tile.IsSpecial || tile.PresetName != "Standard" ? $"Preset: {tile.PresetName}" : "Standard";
-        InfoPlaytime.Text = tile.PlayTimeText;
+        InfoPreset.Text = tile.IsSpecial || tile.PresetName != "Standard" ? Loc.T($"Preset: {tile.PresetName}") : Loc.T("Standard");
+        InfoPlaytime.Text = Loc.T(tile.PlayTimeText);
         if (!string.IsNullOrEmpty(tile.Status))
         {
-            InfoLastLabel.Text = "Status";
-            InfoLast.Text = tile.Status;
+            InfoLastLabel.Text = Loc.T("Status");
+            InfoLast.Text = Loc.T(tile.Status);
         }
         else
         {
-            InfoLastLabel.Text = "Zuletzt";
-            InfoLast.Text = string.IsNullOrEmpty(tile.LastPlayedText) ? "–" : tile.LastPlayedText;
+            InfoLastLabel.Text = Loc.T("Zuletzt");
+            InfoLast.Text = string.IsNullOrEmpty(tile.LastPlayedText) ? "–" : Loc.T(tile.LastPlayedText);
         }
         InfoEmulator.Text = EmulatorName(tile);
         ControllerAdviceView.FillCompact(InfoControllers, ControllerAdviceView.For(tile.Game));
-        StartButtonText.Text = tile.IsSpecial ? "Öffnen" : "Starten";
+        StartButtonText.Text = Loc.T(tile.IsSpecial ? "Öffnen" : "Starten");
+        LabelPlaytime.Text = Loc.T("Spielzeit");
+        LabelLaunchesWith.Text = Loc.T("Startet mit");
+        LabelControllers.Text = Loc.T("Controller-Empfehlung");
         MainWindow.Current.SetBackdrop(tile.Accent, tile.AccentDark, tile.BackgroundPath);
     }
 

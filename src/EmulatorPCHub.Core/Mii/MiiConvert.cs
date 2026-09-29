@@ -158,6 +158,18 @@ public static class MiiConvert
         return new Guid(hash, bigEndian: true);
     }
 
+    /// <summary>Feste Switch-Erstell-ID für ein Wii-U-/3DS-Mii (aus dessen Mii-ID und Erstelldatum).</summary>
+    public static Guid StableCreateIdVer3(ReadOnlySpan<byte> ver3)
+    {
+        Span<byte> seed = stackalloc byte[20];
+        "hubmii03"u8.CopyTo(seed);
+        ver3.Slice(0x04, 12).CopyTo(seed[8..]);
+        var hash = System.Security.Cryptography.MD5.HashData(seed);
+        hash[6] = (byte)(hash[6] & 0x0F | 0x40);
+        hash[8] = (byte)(hash[8] & 0x3F | 0x80);
+        return new Guid(hash, bigEndian: true);
+    }
+
     /// <summary>Datenprüfsumme (CoreData + Erstell-ID) und Geräteprüfsumme wie Eden <c>StoreData::SetChecksum</c>.</summary>
     public static void SetSwitchChecksums(Span<byte> storeData)
     {

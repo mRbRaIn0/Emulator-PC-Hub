@@ -13,6 +13,7 @@ using EmulatorPCHub.App.Controls;
 using EmulatorPCHub.App.Services;
 using EmulatorPCHub.App.Views;
 using EmulatorPCHub.Controllers;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Logging;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.Emulation;
@@ -185,7 +186,7 @@ public sealed partial class MainWindow : Window
     {
         if (e.Content is IHubPage page)
         {
-            HintsText.Text = page.Hints;
+            HintsText.Text = Loc.T(page.Hints);
             page.OnShown();
         }
         if (e.Content is not HomePage)
@@ -193,7 +194,7 @@ public sealed partial class MainWindow : Window
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, FocusFirstIfNeeded);
     }
 
-    public void SetHints(string hints) => HintsText.Text = hints;
+    public void SetHints(string hints) => HintsText.Text = Loc.T(hints);
 
     public object? CurrentPage => ContentFrame.Content;
 
@@ -385,14 +386,15 @@ public sealed partial class MainWindow : Window
         if (Hub.Pipeline.IsRunning)
             return;
         Sounds.Play(UiSound.Launch);
-        LaunchTitle.Text = game.Title;
+        LaunchHint.Text = Loc.T("Spiel beenden: Home + Minus (Guide + View) 1,5 s halten");
+        LaunchTitle.Text = game.DisplayTitle;
         LaunchSubtitle.Text = preset != null && preset.Name != "Standard" ? preset.Name : game.Platform.DisplayName();
         LaunchStep.Text = "";
         LaunchRing.IsActive = true;
         LaunchOverlay.Visibility = Visibility.Visible;
         await Task.Delay(350);
 
-        var progress = new Progress<LaunchProgress>(p => LaunchStep.Text = p.Text);
+        var progress = new Progress<LaunchProgress>(p => LaunchStep.Text = Loc.T(p.Text));
         var outcome = await Hub.LaunchAsync(game, preset, WindowService, progress);
 
         LaunchRing.IsActive = false;
@@ -404,7 +406,7 @@ public sealed partial class MainWindow : Window
         }
         else if (outcome.Duration > TimeSpan.FromSeconds(30))
         {
-            ShowToast($"Willkommen zurück! {game.Title}: {(int)outcome.Duration.TotalMinutes} Min. gespielt");
+            ShowToast($"Willkommen zurück! {game.DisplayTitle}: {(int)outcome.Duration.TotalMinutes} Min. gespielt");
         }
         if (ContentFrame.Content is IHubPage page)
             page.OnShown();
@@ -412,7 +414,7 @@ public sealed partial class MainWindow : Window
 
     public void ShowToast(string text, double seconds = 3.5)
     {
-        ToastText.Text = text;
+        ToastText.Text = Loc.T(text);
         Toast.Visibility = Visibility.Visible;
         _toastTimer?.Stop();
         _toastTimer = DispatcherQueue.CreateTimer();

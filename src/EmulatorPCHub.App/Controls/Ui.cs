@@ -2,6 +2,7 @@ using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using EmulatorPCHub.Core;
 using EmulatorPCHub.UI.ViewModels;
 
 namespace EmulatorPCHub.App.Controls;
@@ -15,19 +16,19 @@ public static class Ui
     public static Brush SubtleBrush => Res<Brush>("HubSubtleBrush");
     public static Brush AccentBrush => Res<Brush>("HubAccentBrush");
 
-    public static TextBlock Title(string text) => new() { Text = text, Style = Res<Style>("HubTitleText") };
+    public static TextBlock Title(string text) => new() { Text = Loc.T(text), Style = Res<Style>("HubTitleText") };
 
-    public static TextBlock Header(string text) => new() { Text = text, Style = Res<Style>("HubHeaderText") };
+    public static TextBlock Header(string text) => new() { Text = Loc.T(text), Style = Res<Style>("HubHeaderText") };
 
     public static TextBlock Text(string text, double size = 15, bool bold = false) => new()
     {
-        Text = text,
+        Text = Loc.T(text),
         Style = Res<Style>("HubBodyText"),
         FontSize = size,
         FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal,
     };
 
-    public static TextBlock Subtle(string text) => new() { Text = text, Style = Res<Style>("HubSubtleText") };
+    public static TextBlock Subtle(string text) => new() { Text = Loc.T(text), Style = Res<Style>("HubSubtleText") };
 
     public static Border Card(params UIElement[] children)
     {
@@ -42,7 +43,7 @@ public static class Ui
         var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         if (glyph != null)
             content.Children.Add(new FontIcon { Glyph = glyph, FontSize = 16 });
-        content.Children.Add(new TextBlock { Text = text });
+        content.Children.Add(new TextBlock { Text = Loc.T(text) });
         var b = new Button
         {
             Content = content,
@@ -81,18 +82,18 @@ public static class Ui
         };
         grid.Children.Add(radio);
         var texts = new StackPanel { Spacing = 2 };
-        texts.Children.Add(new TextBlock { Text = item.Title, FontSize = 18, FontWeight = FontWeights.SemiBold, Foreground = TextBrush });
+        texts.Children.Add(new TextBlock { Text = Loc.T(item.Title), FontSize = 18, FontWeight = FontWeights.SemiBold, Foreground = TextBrush });
         if (!string.IsNullOrEmpty(item.Subtitle))
-            texts.Children.Add(new TextBlock { Text = item.Subtitle, FontSize = 13, Foreground = SubtleBrush, TextWrapping = TextWrapping.Wrap });
+            texts.Children.Add(new TextBlock { Text = Loc.T(item.Subtitle), FontSize = 13, Foreground = SubtleBrush, TextWrapping = TextWrapping.Wrap });
         if (item.Features.Count > 0)
-            texts.Children.Add(new TextBlock { Text = item.FeaturesText, FontSize = 12, Foreground = SubtleBrush, TextWrapping = TextWrapping.Wrap });
+            texts.Children.Add(new TextBlock { Text = Loc.T(item.FeaturesText), FontSize = 12, Foreground = SubtleBrush, TextWrapping = TextWrapping.Wrap });
         Grid.SetColumn(texts, 1);
         grid.Children.Add(texts);
         if (!string.IsNullOrEmpty(item.Status))
         {
             var status = new TextBlock
             {
-                Text = item.Status,
+                Text = Loc.T(item.Status),
                 FontSize = 13,
                 VerticalAlignment = VerticalAlignment.Center,
                 Foreground = item.IsAvailable ? SubtleBrush : Res<Brush>("HubWarnBrush"),
@@ -114,14 +115,41 @@ public static class Ui
     {
         var t = new ToggleSwitch
         {
-            Header = header,
+            Header = Loc.T(header),
             IsOn = value,
             Style = Res<Style>("HubToggle"),
-            OnContent = "An",
-            OffContent = "Aus",
+            OnContent = Loc.T("An"),
+            OffContent = Loc.T("Aus"),
         };
         t.Toggled += (_, _) => onChanged(t.IsOn);
         return t;
+    }
+
+    /// <summary>Dropdown-Auswahl (per Controller mit A öffnen, hoch/runter wählen).</summary>
+    public static ComboBox Dropdown(string header, IReadOnlyList<(string code, string label)> options, string? selected,
+        Action<string> onChanged)
+    {
+        var box = new ComboBox
+        {
+            Header = Loc.T(header),
+            MinWidth = 260,
+            MaxWidth = 420,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 16,
+        };
+        foreach (var (_, label) in options)
+            box.Items.Add(label);
+        var index = -1;
+        for (var i = 0; i < options.Count; i++)
+            if (options[i].code == selected)
+                index = i;
+        box.SelectedIndex = index;
+        box.SelectionChanged += (_, _) =>
+        {
+            if (box.SelectedIndex >= 0 && box.SelectedIndex < options.Count && options[box.SelectedIndex].code != selected)
+                onChanged(options[box.SelectedIndex].code);
+        };
+        return box;
     }
 
     /// <summary>Statuszeile: Symbol + Text (grün = ok, orange = Hinweis).</summary>
@@ -141,7 +169,7 @@ public static class Ui
                     Foreground = Res<Brush>(ok ? "HubGreenBrush" : "HubWarnBrush"),
                     Width = 16,
                 },
-                new TextBlock { Text = text, FontSize = 15, Foreground = TextBrush, TextWrapping = TextWrapping.Wrap, MaxWidth = 620 },
+                new TextBlock { Text = Loc.T(text), FontSize = 15, Foreground = TextBrush, TextWrapping = TextWrapping.Wrap, MaxWidth = 620 },
             },
         };
     }
