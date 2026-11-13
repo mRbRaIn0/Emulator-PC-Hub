@@ -14,6 +14,8 @@ public sealed class ScanResult
     /// <summary>Updates/DLCs je Basis-Title-ID (Switch).</summary>
     public Dictionary<string, SwitchAddOns> SwitchAddOns { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Errors { get; } = [];
+    /// <summary>Ordner, die beim Scan nicht vorhanden bzw. nicht erreichbar waren.</summary>
+    public List<string> SkippedRoots { get; } = [];
     public int FilesChecked { get; set; }
 }
 
@@ -38,8 +40,13 @@ public sealed class GameScanner
         var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var root in roots)
         {
-            if (string.IsNullOrWhiteSpace(root.Path) || !Directory.Exists(root.Path))
+            if (string.IsNullOrWhiteSpace(root.Path))
                 continue;
+            if (!Directory.Exists(root.Path))
+            {
+                result.SkippedRoots.Add(root.Path);
+                continue;
+            }
             foreach (var file in EnumerateFiles(root.Path, 0, ct))
             {
                 ct.ThrowIfCancellationRequested();

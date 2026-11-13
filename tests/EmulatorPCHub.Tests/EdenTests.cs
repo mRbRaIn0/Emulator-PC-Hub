@@ -61,6 +61,26 @@ public class EdenTests
     }
 
     [Fact]
+    public void Eden_uses_newer_build_only_for_listed_titles_and_only_if_it_is_installed()
+    {
+        var (hub, eden) = Setup();
+        using (hub)
+        {
+            hub.File("integrations/switch/user/keys/prod.keys");
+            var game = hub.File("games/fc27.nsp");
+            GameEntry Fc27() => new() { Id = "g", Title = "FC27", Path = game, GameCode = "0100C49025D3E000" };
+            GameEntry Mk8() => new() { Id = "h", Title = "MK8D", Path = game, GameCode = "0100152000022000" };
+
+            var normal = Path.Combine(hub.Root, "integrations", "switch", "eden.exe");
+            Assert.Equal(normal, eden.PrepareLaunch(new LaunchRequest { Game = Fc27() }).FileName); // neuer Build fehlt → Fallback
+
+            var next = Path.GetFullPath(hub.File("integrations/switch-next/eden.exe"));
+            Assert.Equal(next, Path.GetFullPath(eden.PrepareLaunch(new LaunchRequest { Game = Fc27() }).FileName));
+            Assert.Equal(normal, eden.PrepareLaunch(new LaunchRequest { Game = Mk8() }).FileName);
+        }
+    }
+
+    [Fact]
     public void Eden_game_folder_and_external_content_are_written_to_qt_config()
     {
         var (hub, eden) = Setup();

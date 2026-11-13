@@ -6,6 +6,7 @@ using EmulatorPCHub.App.Services;
 using EmulatorPCHub.Controllers;
 using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Models;
+using EmulatorPCHub.Core.Net;
 
 namespace EmulatorPCHub.App.Views;
 
@@ -20,6 +21,8 @@ public sealed partial class SettingsPage : Page, IHubPage
 
     private string _section = "general";
     private string _scanText = "";
+    private IReadOnlyList<NasHostStatus> _nasStatus = [];
+    private bool _nasChecked;
 
     public string Hints => "Ⓐ Auswählen   Ⓑ Zurück   L/R Bereich wechseln";
 
@@ -145,6 +148,7 @@ public sealed partial class SettingsPage : Page, IHubPage
     {
         Body.Children.Add(Ui.Subtle("Spiele müssen nicht in den Hub-Ordner kopiert werden – bestehende Speicherorte werden eingebunden. " +
                                     "Eigene Dumps werden anhand des Disc-Headers bzw. der Title-ID erkannt, Updates und DLCs automatisch zugeordnet."));
+        NasCard();
         foreach (var p in HubPlatformInfo.Emulated)
         {
             var platform = p;
@@ -199,6 +203,66 @@ public sealed partial class SettingsPage : Page, IHubPage
         })));
         if (!string.IsNullOrEmpty(_scanText))
             Body.Children.Add(Ui.Subtle(_scanText));
+    }
+
+    private void NasCard()
+    {
+        var box = new TextBox
+        {
+            Header = Loc.T("NAS-Adressen (mit Komma getrennt)"),
+            Text = string.Join(", ", Cfg.Nas.Hosts),
+            PlaceholderText = "ugreen-nas, 100.101.102.103",
+            MinWidth = 360,
+            MaxWidth = 560,
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        box.LostFocus += (_, _) =>
+        {
+            var hosts = box.Text.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(NasLink.NormalizeHost).Where(h => h.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            if (hosts.SequenceEqual(Cfg.Nas.Hosts))
+                return;
+            Save(c => c.Nas.Hosts = hosts);
+            _ = CheckNasAsync();
+        };
+        if (!_nasChecked && Cfg.Nas.Hosts.Count > 0)
+            _ = CheckNasAsync();
+
+        var items = new List<UIElement>
+        {
+            Ui.Text("NAS & Tailscale", 17, bold: true),
+            Ui.Subtle(@"Spiele (z. B. NSPs) können auf dem NAS liegen, der Emulator läuft auf diesem PC. Trage alle Adressen desselben NAS ein – zuerst die im Heimnetz, dann die Tailscale-Adresse (100.x.y.z oder Name.ts.net). Der Hub nimmt automatisch die erreichbare; Pfade wie \\ugreen-nas\Games\Switch bleiben gültig. Beim ersten Zugriff über eine neue Adresse fragt Windows einmal nach dem NAS-Login („Anmeldedaten speichern“ anhaken)."),
+            box,
+        };
+        foreach (var s in _nasStatus)
+            items.Add(Ui.Status($"{s.Host} ({(s.Tailscale ? "Tailscale" : Loc.T("Heimnetz"))}): {Loc.T(s.Up ? "erreichbar" : "nicht erreichbar")}", s.Up));
+        items.Add(Ui.Buttons(
+            Ui.AsyncAction("Verbindung prüfen", "", CheckNasAsync),
+            Ui.AsyncAction("Netzwerkordner hinzufügen", "", AddNetworkFolderAsync)));
+        Body.Children.Add(Ui.Card([.. items]));
+    }
+
+    private async Task CheckNasAsync()
+    {
+        _nasChecked = true;
+        _nasStatus = await Task.Run(App.Hub.Nas.Check);
+        if (_section == "library")
+            Build(keepFocus: true);
+    }
+
+    private async Task AddNetworkFolderAsync()
+    {
+        var folder = await Dialogs.InputAsync("Netzwerkordner hinzufügen", @"Netzwerkpfad (\\Host\Freigabe\Ordner)");
+        if (string.IsNullOrWhiteSpace(folder))
+            return;
+        if (NasLink.UncHost(folder) == null)
+        {
+            MainWindow.Current.ShowToast(@"Das ist kein Netzwerkpfad (\\Host\Freigabe\Ordner).");
+            return;
+        }
+        if (!Cfg.ExtraLibraryFolders.Contains(folder))
+            Save(c => c.ExtraLibraryFolders.Add(folder));
+        Build(keepFocus: true);
     }
 
     private void Emulators()

@@ -15,6 +15,9 @@ public sealed class HubConfig
     [JsonPropertyName("extraLibraryFolders")]
     public List<string> ExtraLibraryFolders { get; set; } = [];
 
+    [JsonPropertyName("nas")]
+    public NasConfig Nas { get; set; } = new();
+
     [JsonPropertyName("emulators")]
     public EmulatorPathsConfig Emulators { get; set; } = new();
 
@@ -38,6 +41,15 @@ public sealed class HubConfig
 
     [JsonPropertyName("activeProfileId")]
     public string? ActiveProfileId { get; set; }
+}
+
+public sealed class NasConfig
+{
+    /// <summary>
+    /// Adressen desselben NAS, in Reihenfolge der Vorliebe – z. B. <c>["ugreen-nas", "100.101.102.103"]</c> (Heimnetz, dann
+    /// Tailscale). UNC-Pfade zu einer dieser Adressen werden automatisch auf die erreichbare umgeschrieben. Leer = Pfade bleiben wie sie sind.
+    /// </summary>
+    [JsonPropertyName("hosts")] public List<string> Hosts { get; set; } = [];
 }
 
 public sealed class LibraryPathsConfig

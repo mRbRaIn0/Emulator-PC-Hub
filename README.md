@@ -48,6 +48,10 @@ and **does not download any of these**. Everything that is played is provided by
 - **Title and cover per language** (Wii U: titles read from the game data; otherwise your own entries) – the primary
   language is shown, otherwise the secondary language, otherwise the default
 - Per-game settings and presets (e.g. “Vanilla” or a mod edition)
+- **Games on a NAS, also over Tailscale:** keep your NSPs/dumps on an SMB share (e.g. a UGREEN NAS) and run the emulator
+  on the PC. Enter the NAS addresses once (home network name, then Tailscale address) under *Settings → Library → NAS &
+  Tailscale*; existing paths like `\\ugreen-nas\Games\Switch` keep working and are switched to whichever address is
+  reachable. An offline NAS never empties the library and a launch reports it right away instead of freezing
 
 **Controllers**
 - Automatic detection via SDL3 (Xbox, DualSense/DualShock, Pro Controller, Joy-Con, keyboard and more) including hotplug,
@@ -153,7 +157,7 @@ downloaded automatically:
 
 ## Installation
 
-1. Download the package `Emulator-PC-Hub-v1.1-win-x64.zip` from [Releases](../../releases).
+1. Download the package `Emulator-PC-Hub-v1.2-win-x64.zip` from [Releases](../../releases).
 2. Extract it to any **writable** folder, e.g. `D:\Emulator PC Hub\` (not to `C:\Program Files`, otherwise the hub
    falls back to `%LOCALAPPDATA%\EmulatorPCHub`).
 3. Start `Emulator PC Hub.exe`.
@@ -249,6 +253,8 @@ Source code (this repository):
 - On the *Components* page the hub only queries the **current version number and changelog** from the projects'
   official release feeds (GitHub API, dolphin-emu.org, git.eden-emu.dev, rwfc.net) so you can see whether an update
   exists. You download the update yourself.
+- If you use a NAS: the hub opens a short TCP connection to port 445 (SMB) of **your own** NAS addresses (the hosts in
+  your network paths and in `nas.hosts`) to see which one is reachable. Nothing else is contacted for this.
 - There is no telemetry, no accounts and no data transmission to the author.
 - Third-party emulators and tools may have their own online features. Their settings and terms apply.
 

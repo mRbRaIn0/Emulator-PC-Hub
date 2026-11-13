@@ -3,6 +3,7 @@ using EmulatorPCHub.Core.Backup;
 using EmulatorPCHub.Core.Config;
 using EmulatorPCHub.Core.Logging;
 using EmulatorPCHub.Core.Models;
+using EmulatorPCHub.Core.Net;
 using EmulatorPCHub.Emulation;
 using EmulatorPCHub.Emulation.Dolphin;
 using EmulatorPCHub.Emulation.WiiCompiled;
@@ -22,6 +23,7 @@ public sealed class HubServices
     public ConfigService Config { get; }
     public BackupService Backups { get; }
     public LaunchLog LaunchLog { get; }
+    public NasLink Nas { get; }
     public LibraryService Library { get; }
     public AdapterRegistry Adapters { get; }
     public LaunchPipeline Pipeline { get; }
@@ -48,7 +50,8 @@ public sealed class HubServices
         HubLanguage.Apply(Config.Current.Ui);
         Config.Changed += (_, _) => HubLanguage.Apply(Config.Current.Ui);
         LaunchLog = new LaunchLog(paths.Logs);
-        Library = new LibraryService(new LibraryDatabase(paths.LibraryDb), paths, Config);
+        Nas = new NasLink(() => Config.Current.Nas.Hosts);
+        Library = new LibraryService(new LibraryDatabase(paths.LibraryDb), paths, Config, Nas);
         Adapters = new AdapterRegistry(paths, Config, Backups);
         Pipeline = new LaunchPipeline(LaunchLog);
         Presets = new PresetService(paths, Backups);
@@ -135,6 +138,18 @@ public sealed class HubServices
             preset.Kind = PresetKind.RetroRewind;
         }
 
+        // NAS-Spiel: Pfad auf die erreichbare Adresse (Heimnetz oder Tailscale) umschreiben; sonst sofort melden statt ~20 s auf einen toten Host zu warten
+        if (NasLink.UncHost(game.Path) != null)
+        {
+            var reachable = await Task.Run(() => Nas.Resolve(game.Path), ct);
+            if (reachable == null)
+            {
+                const string offline = "NAS nicht erreichbar (Heimnetz und Tailscale geprüft). Ist das NAS an und Tailscale verbunden?";
+                return new LaunchOutcome { Success = false, Error = offline, Log = new LaunchLogEntry { Game = game.Title, Error = offline } };
+            }
+            game.Path = reachable;
+        }
+
         Func<Task>? apply = null;
         if (game.Special == SpecialPage.MarioKart8Deluxe && preset != null)
         {
@@ -152,7 +167,7 @@ public sealed class HubServices
             && Library.SwitchAddOns.TryGetValue(game.GameCode, out var addOns))
         {
             // eigene Updates/DLCs auch für alle anderen Switch-Spiele eintragen
-            try { SwitchAddOnRegistration.Register(Adapters.Switch, game.GameCode, addOns); }
+            try { SwitchAddOnRegistration.Register(Adapters.Switch, game.GameCode, addOns, Library.ResolveNas); }
             catch (Exception ex) { HubLog.Warn("DLC/Update-Registrierung fehlgeschlagen", ex); }
         }
         if (adapter.Id == EmulatorIds.Switch)

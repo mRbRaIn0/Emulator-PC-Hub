@@ -65,6 +65,14 @@ internal static partial class Entries
         A("Eigene Dumps werden anhand des Disc-Headers bzw. der Title-ID erkannt, Updates und DLCs automatisch zugeordnet.", "Your own dumps are recognized by their disc header or title ID; updates and DLC are matched automatically.");
         A("Kein Ordner gewählt", "No folder selected"); A("Weitere Ordner (Plattform automatisch)", "More folders (platform detected automatically)");
         A("Bibliothek jetzt scannen", "Scan library now"); A("Scanne …", "Scanning …");
+        A("NAS & Tailscale", "NAS & Tailscale"); A("NAS-Adressen (mit Komma getrennt)", "NAS addresses (comma-separated)");
+        A("Heimnetz", "home network"); A("erreichbar", "reachable"); A("nicht erreichbar", "not reachable");
+        A("Verbindung prüfen", "Check connection"); A("Netzwerkordner hinzufügen", "Add network folder");
+        A(@"Netzwerkpfad (\\Host\Freigabe\Ordner)", @"Network path (\\host\share\folder)");
+        A(@"Das ist kein Netzwerkpfad (\\Host\Freigabe\Ordner).", @"That is not a network path (\\host\share\folder).");
+        A(@"Spiele (z. B. NSPs) können auf dem NAS liegen, der Emulator läuft auf diesem PC. Trage alle Adressen desselben NAS ein – zuerst die im Heimnetz, dann die Tailscale-Adresse (100.x.y.z oder Name.ts.net). Der Hub nimmt automatisch die erreichbare; Pfade wie \\ugreen-nas\Games\Switch bleiben gültig. Beim ersten Zugriff über eine neue Adresse fragt Windows einmal nach dem NAS-Login („Anmeldedaten speichern“ anhaken).",
+          @"Games (e.g. NSPs) can live on the NAS while the emulator runs on this PC. Enter all addresses of the same NAS – first the one on your home network, then the Tailscale address (100.x.y.z or name.ts.net). The hub picks the one that is reachable automatically; paths like \\ugreen-nas\Games\Switch stay valid. The first time you use a new address, Windows asks once for the NAS login (tick “Remember my credentials”).");
+        A("NAS nicht erreichbar (Heimnetz und Tailscale geprüft). Ist das NAS an und Tailscale verbunden?", "NAS not reachable (home network and Tailscale checked). Is the NAS on and Tailscale connected?");
         A("Daten: ", "Data: "); A("EXE manuell wählen", "Choose EXE manually"); A("Automatisch erkennen", "Detect automatically");
         A("Der Switch-Emulator ist als Adapter austauschbar. Registrierte Adapter: ", "The Switch emulator can be swapped as an adapter. Registered adapters: ");
         A(". Aktiv: ", ". Active: ");

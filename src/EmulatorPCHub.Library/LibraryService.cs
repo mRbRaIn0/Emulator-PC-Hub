@@ -2,6 +2,7 @@ using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Config;
 using EmulatorPCHub.Core.Logging;
 using EmulatorPCHub.Core.Models;
+using EmulatorPCHub.Core.Net;
 
 namespace EmulatorPCHub.Library;
 
@@ -14,6 +15,7 @@ public sealed class LibraryService
     private readonly LibraryDatabase _db;
     private readonly AppPaths _paths;
     private readonly ConfigService _config;
+    private readonly NasLink _nas;
     private readonly object _lock = new();
     private List<GameEntry> _games = [];
 
@@ -28,14 +30,22 @@ public sealed class LibraryService
 
     public event EventHandler? Changed;
 
-    public LibraryService(LibraryDatabase db, AppPaths paths, ConfigService config)
+    public LibraryService(LibraryDatabase db, AppPaths paths, ConfigService config, NasLink? nas = null)
     {
         _db = db;
         _paths = paths;
         _config = config;
+        _nas = nas ?? new NasLink(() => config.Current.Nas.Hosts);
         _games = _db.LoadGames();
         EnsureSpecialEntries();
     }
+
+    /// <summary>NAS-Pfad auf die erreichbare Adresse (Heimnetz oder Tailscale) umschreiben; ist das NAS nicht erreichbar, bleibt er unverändert.</summary>
+    public string ResolveNas(string path) => _nas.Resolve(path) ?? path;
+
+    /// <summary>Pfad der Datei, falls sie existiert (NAS-Pfade nur bei erreichbarem NAS – kein Warten auf einen toten Host), sonst null.</summary>
+    private string? UsableFile(string? path) =>
+        !string.IsNullOrWhiteSpace(path) && _nas.Resolve(path) is { } p && File.Exists(p) ? p : null;
 
     public IReadOnlyList<GameEntry> Games
     {
@@ -82,9 +92,22 @@ public sealed class LibraryService
 
     public ScanResult Refresh(IEnumerable<ScanRoot> additionalRoots, CancellationToken ct = default)
     {
-        var roots = ConfiguredRoots().Concat(additionalRoots).ToList();
+        var roots = new List<ScanRoot>();
+        var skipped = new List<string>();
+        foreach (var root in ConfiguredRoots().Concat(additionalRoots))
+        {
+            var path = _nas.Resolve(root.Path); // NAS: erreichbare Adresse wählen, toten Host gar nicht erst öffnen
+            if (path == null)
+                skipped.Add(root.Path);
+            else
+                roots.Add(root with { Path = path });
+        }
         HubLog.Info($"Bibliothek wird gescannt ({roots.Count} Ordner)");
         var scan = new GameScanner().Scan(roots, ct);
+        skipped.AddRange(scan.SkippedRoots);
+        if (skipped.Any(s => NasLink.UncHost(s) != null))
+            HubLog.Warn("NAS-Ordner nicht erreichbar – deren Spiele bleiben in der Bibliothek: " +
+                        string.Join(", ", skipped.Where(s => NasLink.UncHost(s) != null)));
         LastScan = scan;
 
         var existing = _db.LoadGames(includeMissing: true).ToDictionary(g => g.Id);
@@ -129,7 +152,9 @@ public sealed class LibraryService
 
         _db.UpsertMany(merged);
         var foundIds = merged.Select(g => g.Id).ToHashSet();
-        var missing = existing.Keys.Where(id => !foundIds.Contains(id) && !id.StartsWith("special:")).ToList();
+        var missing = existing.Values
+            .Where(g => !foundIds.Contains(g.Id) && !g.Id.StartsWith("special:") && !OnSkippedShare(g.Path, skipped))
+            .Select(g => g.Id).ToList();
         _db.MarkMissing(missing);
 
         lock (_lock)
@@ -140,6 +165,19 @@ public sealed class LibraryService
                     $"{MarioKartWiiDumps.Count} MKWii-Dump(s), {MarioKart8DeluxeDumps.Count} MK8DX-Dump(s)");
         Changed?.Invoke(this, EventArgs.Empty);
         return scan;
+    }
+
+    /// <summary>
+    /// Liegt die Datei auf einer nicht erreichbaren Netzwerkfreigabe? Dann bleibt das Spiel in der Bibliothek.
+    /// Der Host zählt nicht: Heimnetz-Name und Tailscale-Adresse meinen dieselbe Freigabe.
+    /// </summary>
+    private static bool OnSkippedShare(string? path, List<string> skippedRoots)
+    {
+        static string? ShareKey(string? p) =>
+            NasLink.UncHost(p) is { } host ? p![(2 + host.Length)..].Replace('/', '\\').TrimEnd('\\') : null;
+
+        var key = ShareKey(path);
+        return key != null && skippedRoots.Any(r => ShareKey(r) is { } root && key.StartsWith(root + "\\", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>Mario Kart Wii und Mario Kart 8 Deluxe haben feste Einträge mit Spezialseite.</summary>
@@ -162,26 +200,23 @@ public sealed class LibraryService
 
         var mkwii = Ensure(KnownGames.MarioKartWiiId, "Mario Kart Wii", HubPlatform.Wii, SpecialPage.MarioKartWii,
             cfg.MarioKartWii.Engine == "dolphin" ? EmulatorIds.Dolphin : EmulatorIds.WiiCompiled);
-        var mkwiiFile = !string.IsNullOrWhiteSpace(cfg.MarioKartWii.GameFile) && File.Exists(cfg.MarioKartWii.GameFile)
-            ? cfg.MarioKartWii.GameFile
-            : (MarioKartWiiDumps.FirstOrDefault(d => d.GameCode == "RMCP01") ?? MarioKartWiiDumps.FirstOrDefault())?.Path;
+        var mkwiiFile = UsableFile(cfg.MarioKartWii.GameFile)
+            ?? (MarioKartWiiDumps.FirstOrDefault(d => d.GameCode == "RMCP01") ?? MarioKartWiiDumps.FirstOrDefault())?.Path;
         if (mkwiiFile != null)
         {
             mkwii.Path = mkwiiFile;
             mkwii.GameCode = MarioKartWiiDumps.FirstOrDefault(d => d.Path == mkwiiFile)?.GameCode ?? mkwii.GameCode;
         }
-        mkwii.IsPlaceholder = string.IsNullOrEmpty(mkwii.Path) || !File.Exists(mkwii.Path);
+        mkwii.IsPlaceholder = UsableFile(mkwii.Path) == null;
 
         var mk8 = Ensure(KnownGames.MarioKart8DeluxeId, "Mario Kart 8 Deluxe", HubPlatform.Switch, SpecialPage.MarioKart8Deluxe, EmulatorIds.Switch);
-        var mk8File = !string.IsNullOrWhiteSpace(cfg.MarioKart8Deluxe.GameFile) && File.Exists(cfg.MarioKart8Deluxe.GameFile)
-            ? cfg.MarioKart8Deluxe.GameFile
-            : MarioKart8DeluxeDumps.FirstOrDefault()?.Path;
+        var mk8File = UsableFile(cfg.MarioKart8Deluxe.GameFile) ?? MarioKart8DeluxeDumps.FirstOrDefault()?.Path;
         if (mk8File != null)
         {
             mk8.Path = mk8File;
             mk8.GameCode = KnownGames.MarioKart8DeluxeTitleId;
         }
-        mk8.IsPlaceholder = string.IsNullOrEmpty(mk8.Path) || !File.Exists(mk8.Path);
+        mk8.IsPlaceholder = UsableFile(mk8.Path) == null;
 
         foreach (var e in changed)
             ResolveArtwork(e);

@@ -100,6 +100,6 @@ public sealed partial class MarioKart8DeluxeService
     /// <summary>Trägt alle gefundenen eigenen Updates und DLCs im Switch-Emulator ein.</summary>
     public int RegisterAddOns() =>
         _library.SwitchAddOns.TryGetValue(TitleId, out var a)
-            ? SwitchAddOnRegistration.Register(_adapter(), TitleId, a)
+            ? SwitchAddOnRegistration.Register(_adapter(), TitleId, a, _library.ResolveNas)
             : SwitchAddOnRegistration.Register(_adapter(), TitleId, new SwitchAddOns());
 }

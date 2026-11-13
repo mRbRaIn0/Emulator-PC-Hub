@@ -47,6 +47,11 @@ oder Mods und **lädt so etwas auch nicht herunter**. Alles, was gespielt wird, 
   eine eigene Kachel aus Systemfarbe, Monogramm und Titel
 - Titel und Cover pro Sprache (Wii U: Titel aus den Spieldaten; sonst eigene Einträge), angezeigt wird die Erst-, sonst die Zweitsprache
 - Pro Spiel eigene Einstellungen und Presets (z. B. „Vanilla“ oder eine Mod-Edition)
+- **Spiele auf dem NAS, auch über Tailscale:** NSPs/Dumps liegen auf einer SMB-Freigabe (z. B. UGREEN NAS), der Emulator
+  läuft auf dem PC. Die NAS-Adressen einmal unter *Einstellungen → Bibliothek → NAS & Tailscale* eintragen (Name im
+  Heimnetz, dann Tailscale-Adresse); bisherige Pfade wie `\\ugreen-nas\Games\Switch` bleiben gültig und werden auf die
+  jeweils erreichbare Adresse umgeschaltet. Ein ausgeschaltetes NAS leert die Bibliothek nicht, und ein Spielstart meldet
+  es sofort, statt zu hängen
 
 **Controller**
 - Automatische Erkennung über SDL3 (Xbox, DualSense/DualShock, Pro Controller, Joy-Con, Tastatur u. a.) inkl. Hotplug,
@@ -152,7 +157,7 @@ mitgeliefert, angeboten oder automatisch heruntergeladen:
 
 ## Installation
 
-1. Unter [Releases](../../releases) das Paket `Emulator-PC-Hub-v1.1-win-x64.zip` herunterladen.
+1. Unter [Releases](../../releases) das Paket `Emulator-PC-Hub-v1.2-win-x64.zip` herunterladen.
 2. In einen beliebigen, **beschreibbaren** Ordner entpacken, z. B. `D:\Emulator PC Hub\` (nicht nach `C:\Program Files`,
    sonst weicht der Hub auf `%LOCALAPPDATA%\EmulatorPCHub` aus).
 3. `Emulator PC Hub.exe` starten.
@@ -246,6 +251,8 @@ Quellcode (dieses Repository):
 - Auf der Seite *Komponenten* fragt der Hub nur die **aktuelle Versionsnummer und den Changelog** bei den offiziellen
   Release-Feeds der Projekte ab (GitHub-API, dolphin-emu.org, git.eden-emu.dev, rwfc.net), damit du siehst, ob es ein
   Update gibt. Das Update selbst lädst du wieder selbst herunter.
+- Mit NAS: Der Hub öffnet kurz eine TCP-Verbindung zu Port 445 (SMB) **deiner eigenen** NAS-Adressen (Hosts in deinen
+  Netzwerkpfaden und in `nas.hosts`), um zu sehen, welche erreichbar ist. Dafür wird nichts anderes kontaktiert.
 - Es gibt keine Telemetrie, keine Konten und keine Datenübertragung an den Autor.
 - Emulatoren und Tools von Drittanbietern können eigene Online-Funktionen haben. Dafür gelten deren Einstellungen und Bedingungen.
 

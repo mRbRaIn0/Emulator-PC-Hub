@@ -3,6 +3,7 @@ using EmulatorPCHub.Core;
 using EmulatorPCHub.Core.Backup;
 using EmulatorPCHub.Core.Config;
 using EmulatorPCHub.Core.Logging;
+using EmulatorPCHub.Core.Net;
 
 namespace EmulatorPCHub.Emulation.Switch;
 
@@ -42,6 +43,24 @@ public sealed class EdenAdapter : SwitchEmulatorAdapter
             Paths.IntegrationDir("switch"),
             Path.Combine(LocalAppData, "Programs", "Eden"),
             Path.Combine(ProgramFiles, "Eden"));
+    }
+
+    /// <summary>
+    /// Titel, die Eden 0.2.1 nicht starten kann (NSO-Entpackfehler) und die nur mit dem neueren Eden-Build laufen.
+    /// Der Build liegt in <c>integrations\switch-next</c> (<c>user</c> ist dort eine Junction auf <c>switch\user</c>);
+    /// alle anderen Spiele bleiben auf dem bewährten Eden, weil der neue bei einigen Titeln mehr Textur-Warnungen zeigt.
+    /// </summary>
+    public static readonly IReadOnlySet<string> NeedsNewerEden = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "0100C49025D3E000", // EA Sports FC 27
+    };
+
+    private string? NextExeFor(string? titleId)
+    {
+        if (string.IsNullOrEmpty(titleId) || !NeedsNewerEden.Contains(titleId))
+            return null;
+        var next = Path.Combine(Paths.IntegrationDir("switch-next"), ExeName);
+        return File.Exists(next) ? next : null; // fehlt der neue Build, bleibt es beim normalen Eden
     }
 
     public override EmulatorInstallation DetectInstallation()
@@ -96,9 +115,10 @@ public sealed class EdenAdapter : SwitchEmulatorAdapter
         return new SwitchSystemStatus(File.Exists(keys), fwPresent, keys, fw);
     }
 
+    // NAS-Ordner (UNC) nicht hier prüfen: Directory.Exists wartet bei totem Host ca. 20 s – das übernimmt der Bibliotheksscan (NasLink).
     public override IReadOnlyList<string> DetectGames() =>
         EdenIni.Load(ConfigFile).GetArray(UiSection, GameDirs, "path")
-            .Where(p => p.Length > 0 && Directory.Exists(p)).ToList();
+            .Where(p => p.Length > 0 && (NasLink.UncHost(p) != null || Directory.Exists(p))).ToList();
 
     public override LaunchSpec PrepareLaunch(LaunchRequest request)
     {
@@ -117,11 +137,12 @@ public sealed class EdenAdapter : SwitchEmulatorAdapter
             args.AddRange(CommandLine.Split(request.Preset.Arguments));
         args.Add("-g");
         args.Add(request.Game.Path);
+        var exe = NextExeFor(request.Game.GameCode) ?? install.ExecutablePath!;
         return new LaunchSpec
         {
-            FileName = install.ExecutablePath!,
+            FileName = exe,
             Arguments = args,
-            WorkingDirectory = Path.GetDirectoryName(install.ExecutablePath),
+            WorkingDirectory = Path.GetDirectoryName(exe),
             Description = $"Eden: {request.Game.Title}",
         };
     }
