@@ -32,8 +32,11 @@ oder Mods und **lädt so etwas auch nicht herunter**. Alles, was gespielt wird, 
 ## Funktionen
 
 **Oberfläche & Start**
-- Console Mode (randloses Vollbild) und Desktop-Fenster, Umschalten mit F11
-- Komplett mit Controller bedienbar, eigene UI-Sounds (vom Hub selbst erzeugt, keine fremden Audiodateien)
+- Fenstermodus in den Einstellungen: Fenster, Maximiert oder Vollbild (randlos); F11 wechselt zum Vollbild und zurück
+- Komplett mit Controller bedienbar, eigene UI-Sounds (vom Hub selbst erzeugt, keine fremden Audiodateien); Ton lässt sich ganz ausschalten
+- Hintergrund mit wählbarer Farbe (Standard Grau, Rot, Blau, Türkis, Grün, Violett, Pink) und optional bewegten Wellen
+  (Standard aus); der Cover-Hintergrund des gewählten Spiels bleibt darüber erhalten. Die Farbe gilt im dunklen Design
+- Netzwerk-Symbol zeigt WLAN, LAN oder „keine Verbindung“ (so wie Windows es meldet)
 - Spiel starten, Hub ausblenden, auf das Spielende warten (inkl. Kindprozesse), Hub wieder in den Vordergrund holen
 - Laufendes Spiel per Tastenkombination beenden (Home + Minus 1,5 s halten)
 - Optional: mit Windows starten, Verknüpfungen, direkter Spielstart per `--launch <Spiel-ID>`
@@ -47,6 +50,10 @@ oder Mods und **lädt so etwas auch nicht herunter**. Alles, was gespielt wird, 
   eine eigene Kachel aus Systemfarbe, Monogramm und Titel
 - Titel und Cover pro Sprache (Wii U: Titel aus den Spieldaten; sonst eigene Einträge), angezeigt wird die Erst-, sonst die Zweitsprache
 - Pro Spiel eigene Einstellungen und Presets (z. B. „Vanilla“ oder eine Mod-Edition)
+- **Speicherorte:** Hub-Daten (Profile, Miis, Bibliothek, Einstellungen), Backups/Spielstand-Snapshots und Logs lassen sich in
+  einen frei wählbaren Ordner oder auf das NAS verlegen (*Einstellungen → Speicherorte*, gespeichert in `paths.json` neben dem Hub).
+  Emulatoren und ihre laufenden Spielstände bleiben lokal; die Spielstände landen über die automatischen Snapshots in den Backups.
+  Ist das NAS beim Start nicht erreichbar, nutzt der Hub den lokalen Standardordner
 - **Spiele auf dem NAS, auch über Tailscale:** NSPs/Dumps liegen auf einer SMB-Freigabe (z. B. UGREEN NAS), der Emulator
   läuft auf dem PC. Die NAS-Adressen einmal unter *Einstellungen → Bibliothek → NAS & Tailscale* eintragen (Name im
   Heimnetz, dann Tailscale-Adresse); bisherige Pfade wie `\\ugreen-nas\Games\Switch` bleiben gültig und werden auf die
@@ -157,7 +164,7 @@ mitgeliefert, angeboten oder automatisch heruntergeladen:
 
 ## Installation
 
-1. Unter [Releases](../../releases) das Paket `Emulator-PC-Hub-v1.2-win-x64.zip` herunterladen.
+1. Unter [Releases](../../releases) das Paket `Emulator-PC-Hub-v1.3-win-x64.zip` herunterladen.
 2. In einen beliebigen, **beschreibbaren** Ordner entpacken, z. B. `D:\Emulator PC Hub\` (nicht nach `C:\Program Files`,
    sonst weicht der Hub auf `%LOCALAPPDATA%\EmulatorPCHub` aus).
 3. `Emulator PC Hub.exe` starten.
@@ -200,7 +207,7 @@ Danach: Spiel auswählen → **Spielen**.
 | Start / + | Einstellungen |
 | Home / Guide | Zum Homescreen |
 | Home + Minus (1,5 s halten) | Laufendes Spiel beenden → zurück zum Hub |
-| F11 | Console Mode ein/aus |
+| F11 | Vollbild ein/aus |
 
 **Startparameter**
 

@@ -102,7 +102,17 @@ public sealed partial class MainWindow : Window
 
     public void ApplyTheme()
     {
-        Root.RequestedTheme = Hub.Config.Current.Ui.Theme == "switch-light" ? ElementTheme.Light : ElementTheme.Dark;
+        var light = Hub.Config.Current.Ui.Theme == "switch-light";
+        Root.RequestedTheme = light ? ElementTheme.Light : ElementTheme.Dark;
+        ApplyBackground();
+    }
+
+    /// <summary>Hintergrundfarbe und Wellen-Animation aus den Einstellungen (nur im dunklen Design).</summary>
+    public void ApplyBackground()
+    {
+        var ui = Hub.Config.Current.Ui;
+        Background.Visibility = ui.Theme == "switch-light" ? Visibility.Collapsed : Visibility.Visible;
+        Background.Apply(ui.BackgroundColor, ui.BackgroundAnimation);
     }
 
     /// <summary>Fokussiertes Element – null, solange das Fenster noch keinen XamlRoot hat (früh beim Start).</summary>
@@ -144,7 +154,10 @@ public sealed partial class MainWindow : Window
             ControllerCountText.Foreground = low?.BatteryPercent is <= 15
                 ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["HubWarnBrush"]
                 : ClockText.Foreground;
-            NetworkIcon.Glyph = SystemService.IsOnline() ? "" : "";
+            var net = SystemService.Network();
+            NetworkIcon.Glyph = net switch { NetworkKind.Wlan => "", NetworkKind.Lan => "", _ => "" };
+            NetworkIcon.Opacity = net == NetworkKind.None ? 0.6 : 1;
+            ToolTipService.SetToolTip(NetworkIcon, Loc.T(net switch { NetworkKind.Wlan => "WLAN", NetworkKind.Lan => "LAN", _ => "Keine Verbindung" }));
         }
     }
 
@@ -201,6 +214,7 @@ public sealed partial class MainWindow : Window
     /// <summary>Hintergrund passend zum Spiel (Farbe + Cover).</summary>
     public void SetBackdrop(string? accent, string? accentDark, string? image)
     {
+        BackdropFade.Visibility = accent == null ? Visibility.Collapsed : Visibility.Visible; // Auslauf nur mit Spiel-Hintergrund
         if (accent == null)
         {
             BackdropTint.Fill = null;

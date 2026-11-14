@@ -9,7 +9,7 @@ using WinRT.Interop;
 namespace EmulatorPCHub.App.Services;
 
 /// <summary>
-/// Fenstersteuerung: Desktop Mode (normales Fenster) und Console Mode (randloses Vollbild, Plan Abschnitt 19),
+/// Fenstersteuerung: Fenster, Maximiert und Vollbild (randlos, Console Mode, Plan Abschnitt 19),
 /// Ausblenden während ein Spiel läuft und Zurückholen in den Vordergrund danach.
 /// </summary>
 public sealed class WindowService : IHubWindow
@@ -19,7 +19,10 @@ public sealed class WindowService : IHubWindow
 
     public IntPtr Hwnd { get; }
     public AppWindow AppWindow { get; }
-    public bool IsConsoleMode { get; private set; }
+    /// <summary>"windowed", "maximized" oder "fullscreen".</summary>
+    public string Mode { get; private set; } = "maximized";
+    private string _lastWindowed = "maximized";
+    public bool IsConsoleMode => Mode == "fullscreen";
 
     public event Action<bool>? ModeChanged;
 
@@ -35,21 +38,39 @@ public sealed class WindowService : IHubWindow
         AppWindow.Title = "Emulator PC Hub";
     }
 
-    public void SetConsoleMode(bool console)
+    public void SetMode(string mode)
     {
-        IsConsoleMode = console;
-        if (console)
+        Mode = mode;
+        if (mode == "fullscreen")
         {
             AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
         }
         else
         {
+            _lastWindowed = mode;
             AppWindow.SetPresenter(AppWindowPresenterKind.Overlapped);
             if (AppWindow.Presenter is OverlappedPresenter p)
-                p.Maximize();
+            {
+                if (mode == "maximized")
+                {
+                    p.Maximize();
+                }
+                else
+                {
+                    p.Restore();
+                    var scale = GetDpiForWindow(Hwnd) / 96.0;
+                    var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+                    var w = Math.Min((int)(1280 * scale), area.Width);
+                    var h = Math.Min((int)(720 * scale), area.Height);
+                    AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(area.X + (area.Width - w) / 2, area.Y + (area.Height - h) / 2, w, h));
+                }
+            }
         }
-        ModeChanged?.Invoke(console);
+        ModeChanged?.Invoke(IsConsoleMode);
     }
+
+    /// <summary>F11 / Vollbild-Knopf: zwischen Vollbild und dem zuletzt genutzten Fenstermodus wechseln.</summary>
+    public void SetConsoleMode(bool console) => SetMode(console ? "fullscreen" : _lastWindowed);
 
     public void ToggleConsoleMode() => SetConsoleMode(!IsConsoleMode);
 
@@ -73,7 +94,7 @@ public sealed class WindowService : IHubWindow
         _window.DispatcherQueue.TryEnqueue(() =>
         {
             AppWindow.Show(true);
-            SetConsoleMode(IsConsoleMode);
+            SetMode(Mode);
             BringToFront();
         });
     }
@@ -102,6 +123,7 @@ public sealed class WindowService : IHubWindow
     private const int SwShow = 5;
     private const int SwRestore = 9;
 
+    [DllImport("user32.dll")] private static extern uint GetDpiForWindow(IntPtr hWnd);
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
     [DllImport("user32.dll")] private static extern bool BringWindowToTop(IntPtr hWnd);

@@ -6,11 +6,14 @@
     xmlns:controls="using:EmulatorPCHub.App.Controls">
 
     <Grid x:Name="Root" Background="{ThemeResource HubBackgroundBrush}">
-        <!-- Hintergrund wechselt passend zum ausgewählten Spiel -->
+        <!-- Farbverlauf mit Wellen (nur dunkles Design) -->
+        <controls:BackgroundView x:Name="Background" />
+
+        <!-- Hintergrund wechselt passend zum ausgewählten Spiel (liegt über dem Farbverlauf) -->
         <Grid x:Name="Backdrop" IsHitTestVisible="False">
             <Rectangle x:Name="BackdropTint" Opacity="0.55" />
             <Image x:Name="BackdropImage" Stretch="UniformToFill" Opacity="0.16" />
-            <Rectangle>
+            <Rectangle x:Name="BackdropFade" Visibility="Collapsed">
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#00000000" Offset="0" />
@@ -45,9 +48,9 @@
                         <TextBlock x:Name="ControllerCountText" FontSize="16" VerticalAlignment="Center" Foreground="{ThemeResource HubTextBrush}" />
                     </StackPanel>
                     <FontIcon x:Name="NetworkIcon" Glyph="&#xE701;" FontSize="20" Foreground="{ThemeResource HubTextBrush}"
-                              ToolTipService.ToolTip="Netzwerk" />
+                              ToolTipService.ToolTip="WLAN" />
                     <Button x:Name="FullscreenButton" IsTabStop="False" Style="{StaticResource HubRoundButton}" Width="44" Height="44" CornerRadius="22"
-                            Background="Transparent" Click="FullscreenButton_Click" ToolTipService.ToolTip="Console Mode (F11)">
+                            Background="Transparent" Click="FullscreenButton_Click" ToolTipService.ToolTip="Vollbild (F11)">
                         <FontIcon x:Name="FullscreenIcon" Glyph="&#xE740;" FontSize="18" />
                     </Button>
                     <Button x:Name="SettingsButton" IsTabStop="False" Style="{StaticResource HubRoundButton}" Width="44" Height="44" CornerRadius="22"

@@ -131,6 +131,18 @@ public sealed class UiConfig
 {
     /// <summary>"console" (randloses Vollbild) oder "desktop".</summary>
     [JsonPropertyName("startupMode")] public string StartupMode { get; set; } = "desktop";
+    /// <summary>"windowed" (Fenster), "maximized" (maximiert) oder "fullscreen" (Vollbild). Leer = aus <see cref="StartupMode"/> abgeleitet.</summary>
+    [JsonPropertyName("windowMode")] public string WindowMode { get; set; } = "";
+    /// <summary>Hintergrundfarbe im dunklen Design: grau (Standard), rot, blau, tuerkis, gruen, violett, pink.</summary>
+    [JsonPropertyName("backgroundColor")] public string BackgroundColor { get; set; } = "grau";
+    /// <summary>Wellen im Hintergrund bewegen (Standard: aus).</summary>
+    [JsonPropertyName("backgroundAnimation")] public bool BackgroundAnimation { get; set; }
+
+    /// <summary>Gewählter Fenstermodus; ältere Konfigurationen kennen nur Desktop (maximiert) und Console (Vollbild).</summary>
+    [JsonIgnore]
+    public string EffectiveWindowMode => WindowMode is "windowed" or "maximized" or "fullscreen"
+        ? WindowMode
+        : StartupMode == "console" ? "fullscreen" : "maximized";
     /// <summary>"switch" (dunkel) oder "switch-light".</summary>
     [JsonPropertyName("theme")] public string Theme { get; set; } = "switch";
     [JsonPropertyName("animations")] public bool Animations { get; set; } = true;

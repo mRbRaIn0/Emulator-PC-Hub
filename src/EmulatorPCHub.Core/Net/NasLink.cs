@@ -69,6 +69,9 @@ public sealed class NasLink
         return up.Equals(host, StringComparison.OrdinalIgnoreCase) ? path : @"\\" + up + path[(2 + host.Length)..];
     }
 
+    /// <summary>Einmalige Auflösung ohne Zwischenspeicher (für Pfade, die schon vor dem Laden der Konfiguration gebraucht werden).</summary>
+    public static string? Resolve(string path, IReadOnlyList<string> hosts) => new NasLink(() => hosts).Resolve(path);
+
     /// <summary>Alle eingetragenen Adressen neu prüfen (Cache wird verworfen).</summary>
     public IReadOnlyList<NasHostStatus> Check()
     {

@@ -67,6 +67,27 @@ internal static partial class Entries
         A("Bibliothek jetzt scannen", "Scan library now"); A("Scanne …", "Scanning …");
         A("NAS & Tailscale", "NAS & Tailscale"); A("NAS-Adressen (mit Komma getrennt)", "NAS addresses (comma-separated)");
         A("Heimnetz", "home network"); A("erreichbar", "reachable"); A("nicht erreichbar", "not reachable");
+        A("Fenstermodus (F11 wechselt zum Vollbild)", "Window mode (F11 switches to fullscreen)");
+        A("Fenster", "Windowed"); A("Maximiert", "Maximized"); A("Vollbild", "Fullscreen"); A("Vollbild (F11)", "Fullscreen (F11)");
+        A(@"Hub-Daten (Profile, Miis, Bibliothek, Einstellungen), Spielstand-Backups und Logs können auf dem NAS liegen, z. B. \\192.168.1.83\personal_folder\Emulator PC Hub\data. " +
+          "So hast du auf jedem PC denselben Stand. Emulatoren und ihre laufenden Spielstände bleiben lokal – die Spielstände landen über die automatischen Snapshots in den Backups. " +
+          "Änderungen gelten nach einem Neustart des Hubs. Ist das NAS beim Start nicht erreichbar, nutzt der Hub den lokalen Standardordner.",
+          @"Hub data (profiles, Miis, library, settings), save backups and logs can live on the NAS, e.g. \\192.168.1.83\personal_folder\Emulator PC Hub\data. " +
+          "That way every PC has the same state. Emulators and their running saves stay local – the saves reach the backups through the automatic snapshots. " +
+          "Changes apply after restarting the hub. If the NAS is not reachable at start, the hub uses the local default folder.");
+        A("Hintergrund", "Background"); A("Hintergrundfarbe", "Background color");
+        A("Grau", "Gray"); A("Rot", "Red"); A("Blau", "Blue"); A("Türkis", "Turquoise"); A("Grün", "Green"); A("Violett", "Purple"); A("Pink", "Pink");
+        A("Wellen im Hintergrund bewegen", "Animate the background waves");
+        A("Die Hintergrundfarbe gilt im dunklen Design. Standard: Grau, ohne Animation.", "The background color applies to the dark design. Default: gray, no animation.");
+        A("WLAN", "Wi-Fi"); A("LAN", "LAN"); A("Keine Verbindung", "No connection");
+        A("Speicherorte", "Storage locations"); A("Hub-Daten", "Hub data"); A("Backups und Spielstand-Snapshots", "Backups and save snapshots");
+        A("Ordner wählen", "Choose folder"); A("Netzwerkpfad eingeben", "Enter network path"); A("Lokaler Standard", "Local default");
+        A("Vorhandene Daten in den neuen Ordner kopieren?", "Copy the existing data to the new folder?");
+        A("Kopieren", "Copy"); A("Nicht kopieren", "Don't copy");
+        A("Gespeichert – gilt nach einem Neustart des Hubs.", "Saved – applies after restarting the hub.");
+        A("Standard (lokal): ", "Default (local): "); A("Eingestellt: ", "Set to: ");
+        A("Spiele-Ordner (z. B. NSPs auf dem NAS) stellst du unter Bibliothek ein.", "Game folders (e.g. NSPs on the NAS) are set under Library.");
+        A("So hast du auf jedem PC denselben Stand. ", "That way every PC has the same state. ");
         A("Verbindung prüfen", "Check connection"); A("Netzwerkordner hinzufügen", "Add network folder");
         A(@"Netzwerkpfad (\\Host\Freigabe\Ordner)", @"Network path (\\host\share\folder)");
         A(@"Das ist kein Netzwerkpfad (\\Host\Freigabe\Ordner).", @"That is not a network path (\\host\share\folder).");

@@ -38,10 +38,12 @@ public partial class App : Application
         _window = new MainWindow();
 
         var cfg = Hub.Config.Current;
-        var console = Arguments.Contains("--console") || (!Arguments.Contains("--desktop") && cfg.Ui.StartupMode == "console");
+        var mode = Arguments.Contains("--console") ? "fullscreen"
+            : Arguments.Contains("--desktop") && cfg.Ui.EffectiveWindowMode == "fullscreen" ? "maximized"
+            : cfg.Ui.EffectiveWindowMode;
         _window.Activate();
         // Presenter erst nach dem Aktivieren setzen, sonst überschreibt Windows das Vollbild wieder.
-        _window.DispatcherQueue.TryEnqueue(() => _window.WindowService.SetConsoleMode(console));
+        _window.DispatcherQueue.TryEnqueue(() => _window.WindowService.SetMode(mode));
 
         // --page <name>: direkt eine Seite öffnen (z. B. für Verknüpfungen)
         var pageIdx = Array.IndexOf(Arguments, "--page");

@@ -15,7 +15,7 @@ public sealed partial class SettingsPage : Page, IHubPage
 {
     private static readonly (string id, string label)[] Sections =
     [
-        ("general", "Allgemein"), ("library", "Bibliothek"), ("emulators", "Emulatoren"), ("launch", "Spielstart"),
+        ("general", "Allgemein"), ("library", "Bibliothek"), ("paths", "Speicherorte"), ("emulators", "Emulatoren"), ("launch", "Spielstart"),
         ("profile", "Profil"), ("troubleshooting", "Troubleshooting"), ("about", "Über"),
     ];
 
@@ -72,6 +72,7 @@ public sealed partial class SettingsPage : Page, IHubPage
         {
             case "general": General(); break;
             case "library": LibrarySection(); break;
+            case "paths": StorageSection(); break;
             case "emulators": Emulators(); break;
             case "launch": Launch(); break;
             case "profile": Profile(); break;
@@ -106,8 +107,30 @@ public sealed partial class SettingsPage : Page, IHubPage
                       "werden in der Erstsprache angezeigt; fehlt sie für ein Spiel, wird die Zweitsprache genutzt. " +
                       "Pro Spiel lässt sich das unter „Alle Spiele“ → Einstellungen ändern.")));
         Body.Children.Add(Ui.Card(
-            Ui.Toggle("Beim Start im Console Mode (randloses Vollbild)", Cfg.Ui.StartupMode == "console",
-                v => Save(c => c.Ui.StartupMode = v ? "console" : "desktop")),
+            Ui.Dropdown("Fenstermodus (F11 wechselt zum Vollbild)", [("windowed", Loc.T("Fenster")), ("maximized", Loc.T("Maximiert")), ("fullscreen", Loc.T("Vollbild"))],
+                Cfg.Ui.EffectiveWindowMode, mode =>
+                {
+                    Save(c =>
+                    {
+                        c.Ui.WindowMode = mode;
+                        c.Ui.StartupMode = mode == "fullscreen" ? "console" : "desktop";
+                    });
+                    MainWindow.Current.WindowService.SetMode(mode);
+                })));
+        Body.Children.Add(Ui.Header("Hintergrund"));
+        Body.Children.Add(Ui.Card(
+            Ui.Dropdown("Hintergrundfarbe", BackgroundView.Palettes.Select(p => (p.Id, Loc.T(p.Label))).ToList(), Cfg.Ui.BackgroundColor, id =>
+            {
+                Save(c => c.Ui.BackgroundColor = id);
+                MainWindow.Current.ApplyBackground();
+            }),
+            Ui.Toggle("Wellen im Hintergrund bewegen", Cfg.Ui.BackgroundAnimation, v =>
+            {
+                Save(c => c.Ui.BackgroundAnimation = v);
+                MainWindow.Current.ApplyBackground();
+            }),
+            Ui.Subtle("Die Hintergrundfarbe gilt im dunklen Design. Standard: Grau, ohne Animation.")));
+        Body.Children.Add(Ui.Card(
             Ui.Toggle("Helles Design (Basic White)", Cfg.Ui.Theme == "switch-light", v =>
             {
                 Save(c => c.Ui.Theme = v ? "switch-light" : "switch");
@@ -123,15 +146,20 @@ public sealed partial class SettingsPage : Page, IHubPage
                 Save(c => c.Ui.Autostart = v);
             })));
         var volume = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        foreach (var (label, value) in new[] { ("Leise", 0.3), ("Mittel", 0.6), ("Laut", 0.9) })
+        foreach (var (label, value) in new[] { ("Aus", 0.0), ("Leise", 0.3), ("Mittel", 0.6), ("Laut", 0.9) })
         {
             var b = Ui.Action(label, null, () =>
             {
-                Save(c => c.Ui.SoundVolume = value);
+                Save(c =>
+                {
+                    c.Ui.Sounds = value > 0;
+                    if (value > 0)
+                        c.Ui.SoundVolume = value;
+                });
                 MainWindow.Current.Sounds.Play(UiSound.Select);
                 Build(keepFocus: true);
             });
-            if (Math.Abs(Cfg.Ui.SoundVolume - value) < 0.05)
+            if (value == 0 ? !Cfg.Ui.Sounds : Cfg.Ui.Sounds && Math.Abs(Cfg.Ui.SoundVolume - value) < 0.05)
             {
                 b.BorderBrush = Ui.AccentBrush;
                 b.BorderThickness = new Thickness(2);
@@ -223,6 +251,12 @@ public sealed partial class SettingsPage : Page, IHubPage
             if (hosts.SequenceEqual(Cfg.Nas.Hosts))
                 return;
             Save(c => c.Nas.Hosts = hosts);
+            var overrides = PathOverrides.Load(App.Hub.Paths.Root);
+            if (overrides.Data.Length + overrides.Backups.Length + overrides.Logs.Length > 0)
+            {
+                overrides.NasHosts = hosts; // Speicherorte auf dem NAS werden schon vor der Konfiguration gebraucht
+                overrides.Save(App.Hub.Paths.Root);
+            }
             _ = CheckNasAsync();
         };
         if (!_nasChecked && Cfg.Nas.Hosts.Count > 0)
@@ -263,6 +297,68 @@ public sealed partial class SettingsPage : Page, IHubPage
         if (!Cfg.ExtraLibraryFolders.Contains(folder))
             Save(c => c.ExtraLibraryFolders.Add(folder));
         Build(keepFocus: true);
+    }
+
+    /// <summary>Speicherorte: Hub-Daten, Spielstand-Backups und Logs lokal oder auf dem NAS (gilt ab dem nächsten Start).</summary>
+    private void StorageSection()
+    {
+        var paths = App.Hub.Paths;
+        var overrides = PathOverrides.Load(paths.Root);
+        Body.Children.Add(Ui.Subtle(@"Hub-Daten (Profile, Miis, Bibliothek, Einstellungen), Spielstand-Backups und Logs können auf dem NAS liegen, z. B. \\192.168.1.83\personal_folder\Emulator PC Hub\data. " +
+                                    "So hast du auf jedem PC denselben Stand. Emulatoren und ihre laufenden Spielstände bleiben lokal – die Spielstände landen über die automatischen Snapshots in den Backups. " +
+                                    "Änderungen gelten nach einem Neustart des Hubs. Ist das NAS beim Start nicht erreichbar, nutzt der Hub den lokalen Standardordner."));
+        if (paths.Notice != null)
+            Body.Children.Add(Ui.Status(paths.Notice, false));
+
+        void Row(string title, string current, string standard, Func<string> getSetting, Action<string> setSetting, bool offerCopy)
+        {
+            var setting = getSetting();
+            async Task Choose(string? folder)
+            {
+                if (string.IsNullOrWhiteSpace(folder))
+                    return;
+                folder = folder.Trim();
+                if (setting == folder)
+                    return;
+                var copy = offerCopy && folder.Length > 0 && Directory.Exists(current)
+                    && !(Directory.Exists(folder) && Directory.EnumerateFileSystemEntries(folder).Any())
+                    && await Dialogs.ConfirmAsync(title, "Vorhandene Daten in den neuen Ordner kopieren?", "Kopieren", "Nicht kopieren");
+                try
+                {
+                    if (copy)
+                        await Task.Run(() => PathOverrides.CopyFolder(current, folder));
+                    setSetting(folder);
+                    overrides.NasHosts = Cfg.Nas.Hosts.ToList();
+                    overrides.Save(paths.Root);
+                    MainWindow.Current.ShowToast("Gespeichert – gilt nach einem Neustart des Hubs.");
+                }
+                catch (Exception ex)
+                {
+                    MainWindow.Current.ShowToast("Fehlgeschlagen: " + ex.Message);
+                }
+                Build(keepFocus: true);
+            }
+
+            Body.Children.Add(Ui.Card(
+                Ui.Text(title, 17, bold: true),
+                Ui.Subtle(current),
+                Ui.Subtle(setting.Length == 0 ? "Standard (lokal): " + standard : "Eingestellt: " + setting),
+                Ui.Buttons(
+                    Ui.AsyncAction("Ordner wählen", "", async () => await Choose(await Dialogs.PickFolderAsync())),
+                    Ui.AsyncAction("Netzwerkpfad eingeben", "", async () => await Choose(await Dialogs.InputAsync(title, @"Netzwerkpfad (\\Host\Freigabe\Ordner)", setting))),
+                    Ui.Action("Lokaler Standard", "", () =>
+                    {
+                        setSetting("");
+                        overrides.Save(paths.Root);
+                        MainWindow.Current.ShowToast("Gespeichert – gilt nach einem Neustart des Hubs.");
+                        Build(keepFocus: true);
+                    }))));
+        }
+
+        Row("Hub-Daten", paths.Data, Path.Combine(paths.Root, "data"), () => overrides.Data, v => overrides.Data = v, offerCopy: true);
+        Row("Backups und Spielstand-Snapshots", paths.Backups, Path.Combine(paths.Root, "Backups"), () => overrides.Backups, v => overrides.Backups = v, offerCopy: true);
+        Row("Logs", paths.Logs, Path.Combine(paths.Root, "Logs"), () => overrides.Logs, v => overrides.Logs = v, offerCopy: false);
+        Body.Children.Add(Ui.Subtle("Spiele-Ordner (z. B. NSPs auf dem NAS) stellst du unter Bibliothek ein."));
     }
 
     private void Emulators()

@@ -6,6 +6,8 @@ using EmulatorPCHub.Core.Logging;
 namespace EmulatorPCHub.App.Services;
 
 /// <summary>Power-Menü (Plan Abschnitt 20), Autostart, Startmenü-Verknüpfung, Ordner/Links öffnen.</summary>
+public enum NetworkKind { None, Wlan, Lan }
+
 public static class SystemService
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
@@ -106,15 +108,22 @@ public static class SystemService
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
 
-    public static bool IsOnline()
+    /// <summary>Verbindung laut Windows (wie das Taskleisten-Symbol): WLAN, LAN oder keine Verbindung (kein Internet).</summary>
+    public static NetworkKind Network()
     {
         try
         {
-            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            var profile = Windows.Networking.Connectivity.NetworkInformation.GetInternetConnectionProfile();
+            if (profile?.GetNetworkConnectivityLevel() != Windows.Networking.Connectivity.NetworkConnectivityLevel.InternetAccess)
+                return NetworkKind.None;
+            if (profile.IsWlanConnectionProfile || profile.IsWwanConnectionProfile)
+                return NetworkKind.Wlan;
+            // Bei VPN/Tailscale als Standardroute zählt die Art des echten Adapters (Ethernet 6, WLAN 71).
+            return profile.NetworkAdapter?.IanaInterfaceType == 71 ? NetworkKind.Wlan : NetworkKind.Lan;
         }
         catch
         {
-            return false;
+            return NetworkKind.None;
         }
     }
 

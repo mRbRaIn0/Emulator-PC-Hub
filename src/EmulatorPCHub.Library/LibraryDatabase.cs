@@ -19,8 +19,11 @@ public sealed class LibraryDatabase
     {
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
         _connectionString = new SqliteConnectionStringBuilder { DataSource = dbPath, Pooling = true }.ToString();
+        _onNetwork = Core.Net.NasLink.UncHost(dbPath) != null;
         Migrate();
     }
+
+    private readonly bool _onNetwork;
 
     private SqliteConnection Open()
     {
@@ -32,9 +35,14 @@ public sealed class LibraryDatabase
     private void Migrate()
     {
         using var c = Open();
+        // WAL braucht gemeinsamen Speicher und ist auf Netzwerkfreigaben (NAS) nicht zulässig: dort klassisches Journal.
+        using (var journal = c.CreateCommand())
+        {
+            journal.CommandText = _onNetwork ? "PRAGMA journal_mode = DELETE;" : "PRAGMA journal_mode = WAL;";
+            journal.ExecuteNonQuery();
+        }
         using var cmd = c.CreateCommand();
         cmd.CommandText = """
-            PRAGMA journal_mode = WAL;
             CREATE TABLE IF NOT EXISTS games (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
