@@ -204,6 +204,8 @@ public sealed partial class MainWindow : Window
         }
         if (e.Content is not HomePage)
             SetBackdrop(null, null, null);
+        // Die hellen Wellenkanten laufen sonst quer durch Texte und Buttons der Unterseiten
+        Background.Opacity = e.Content is HomePage ? 1 : 0.35;
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, FocusFirstIfNeeded);
     }
 
@@ -214,7 +216,7 @@ public sealed partial class MainWindow : Window
     /// <summary>Hintergrund passend zum Spiel (Farbe + Cover).</summary>
     public void SetBackdrop(string? accent, string? accentDark, string? image)
     {
-        BackdropFade.Visibility = accent == null ? Visibility.Collapsed : Visibility.Visible; // Auslauf nur mit Spiel-Hintergrund
+        BackdropFade.Visibility = BackdropScrim.Visibility = accent == null ? Visibility.Collapsed : Visibility.Visible; // Auslauf + Abdeckung nur mit Spiel-Hintergrund
         if (accent == null)
         {
             BackdropTint.Fill = null;

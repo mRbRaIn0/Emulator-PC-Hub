@@ -75,6 +75,8 @@
             <!-- Standard-Button im Hub-Look (runde Ecken, cyanfarbener Fokusrahmen) -->
             <Style x:Key="HubButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
                 <Setter Property="CornerRadius" Value="22" />
+                <!-- deckend: sonst scheinen die Wellenkanten des Hintergrunds durch den Button-Text -->
+                <Setter Property="Background" Value="{ThemeResource HubSurfaceBrush}" />
                 <Setter Property="Padding" Value="22,10" />
                 <Setter Property="MinHeight" Value="44" />
                 <Setter Property="FontSize" Value="15" />

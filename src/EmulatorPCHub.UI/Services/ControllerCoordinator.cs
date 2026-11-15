@@ -233,6 +233,7 @@ public sealed class ControllerCoordinator
             EmulatorIds.Dolphin => new DolphinInputWriter(_hub.Adapters.Dolphin.UserDirectory(), _hub.Backups),
             EmulatorIds.Cemu => new CemuInputWriter(_hub.Adapters.Cemu.DataDirectory(), _hub.Backups),
             EmulatorIds.Switch => _hub.Adapters.Switch is EdenAdapter eden ? new EdenInputWriter(eden) : null,
+            EmulatorIds.Eglantine => _hub.Adapters.Eglantine.ConfigFile() is { } eglantine ? new EglantineInputWriter(eglantine, _hub.Backups) : null,
             EmulatorIds.MelonDS => _hub.Adapters.MelonDS.ConfigFile() is { } melon ? new MelonDsInputWriter(melon, _hub.Backups) : null,
             EmulatorIds.Azahar => _hub.Adapters.Azahar.ConfigFile() is { } azahar ? new AzaharInputWriter(azahar, _hub.Backups) : null,
             _ => null, // WiiCompiled verwaltet seine Belegung selbst (F10 im Spiel)

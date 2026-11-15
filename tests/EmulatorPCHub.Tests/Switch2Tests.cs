@@ -1,5 +1,8 @@
+using EmulatorPCHub.Core.Input;
 using EmulatorPCHub.Core.Models;
 using EmulatorPCHub.Emulation;
+using EmulatorPCHub.Emulation.Input;
+using EmulatorPCHub.Emulation.Switch;
 using EmulatorPCHub.Emulation.Switch2;
 using EmulatorPCHub.Library;
 
@@ -56,5 +59,32 @@ public class Switch2Tests
         Assert.False(adapter.DetectInstallation().IsInstalled);
         Assert.Throws<LaunchException>(() =>
             adapter.PrepareLaunch(new LaunchRequest { Game = new GameEntry { Id = "x", Title = "x", Path = game } }));
+    }
+
+    private const string DualSenseMapping =
+        "050000004c050000e60c000000810000,PS5 Controller,a:b0,b:b1,back:b4,dpdown:b12,dpleft:b13,dpright:b14,dpup:b11," +
+        "guide:b5,leftshoulder:b9,leftstick:b7,lefttrigger:a4,leftx:a0,lefty:a1,misc1:b15,rightshoulder:b10,rightstick:b8," +
+        "righttrigger:a5,rightx:a2,righty:a3,start:b6,x:b2,y:b3,touchpad:b16,platform:Windows,";
+
+    [Fact]
+    public void Eglantine_input_writer_maps_the_pad_into_the_eglantine_config()
+    {
+        using var hub = new TempHub();
+        var file = hub.File("integrations/eglantine/user/config/qt-config.ini",
+            System.Text.Encoding.UTF8.GetBytes("[Controls]\nplayer_0_connected=false\n"));
+        var pad = new ControllerDescriptor
+        {
+            Key = "ds5", Name = "DualSense", Kind = ControllerKind.PlayStation5,
+            SdlGuid = "050012344C050000E60C000000810000", SdlMapping = DualSenseMapping, SdlIndex = 0,
+        };
+        var setup = new InputSetup();
+        setup.Players.Add(new ResolvedPlayer(1, pad, PlayerMode.Native, EmulatedPad.SwitchPro, ""));
+
+        var text = new EglantineInputWriter(file, hub.Backups).Apply(setup, new GameEntry { Id = "switch2:x", Title = "x" });
+
+        Assert.Contains("1 Spieler", text);
+        var ini = EdenIni.Load(file);
+        Assert.Equal("true", ini.Get("Controls", "player_0_connected"));
+        Assert.Equal("engine:sdl,port:0,guid:050000004c050000e60c000000810000,button:1", ini.Get("Controls", "player_0_button_a"));
     }
 }

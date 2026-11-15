@@ -11,8 +11,10 @@
 
         <!-- Hintergrund wechselt passend zum ausgewählten Spiel (liegt über dem Farbverlauf) -->
         <Grid x:Name="Backdrop" IsHitTestVisible="False">
-            <Rectangle x:Name="BackdropTint" Opacity="0.55" />
-            <Image x:Name="BackdropImage" Stretch="UniformToFill" Opacity="0.16" />
+            <Rectangle x:Name="BackdropTint" Opacity="0.45" />
+            <Image x:Name="BackdropImage" Stretch="UniformToFill" Opacity="0.10" />
+            <!-- dunkle Abdeckung: Texte bleiben auch auf hellen Spielfarben gut lesbar -->
+            <Rectangle x:Name="BackdropScrim" Fill="#66000000" Visibility="Collapsed" />
             <Rectangle x:Name="BackdropFade" Visibility="Collapsed">
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
