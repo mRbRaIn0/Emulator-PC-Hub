@@ -139,6 +139,7 @@ public sealed partial class SetupPage : Page, IHubPage
                         "wii" or "wiigames" => HubPlatform.Wii,
                         "gamecube" or "gc" or "ngc" => HubPlatform.GameCube,
                         "switch" or "nsp" or "switchgames" => HubPlatform.Switch,
+                        "switch2" or "switch-2" or "nx2" => HubPlatform.Switch2,
                         "ds" or "nds" or "nintendods" or "dsgames" => HubPlatform.DS,
                         "3ds" or "n3ds" or "nintendo3ds" or "3dsgames" => HubPlatform.ThreeDS,
                         _ => null,

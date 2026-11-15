@@ -43,6 +43,8 @@ public sealed class ComponentInstaller
         new(ComponentIds.Switch, "Eden", "Emulator", "Nintendo Switch (Mario Kart 8 Deluxe) – austauschbarer Switch-Adapter",
             "https://eden-emu.dev",
             new GitHubReleaseSource("eden-emu", "eden", "git.eden-emu.dev"), true),
+        new(ComponentIds.Eglantine, "Eglantine", "Emulator", "Nintendo Switch 2 (experimentell, z. B. Mario Kart World) – braucht eine starke GPU",
+            "https://github.com/Djihads80/Eglantine", new GitHubReleaseSource("Djihads80", "Eglantine"), true),
         new(ComponentIds.MelonDS, "melonDS", "Emulator", "Nintendo DS – Tastatur & Controller, keine BIOS-Dumps nötig",
             "https://melonds.kuribo64.net", new GitHubReleaseSource("melonDS-emu", "melonDS"), true),
         new(ComponentIds.Azahar, "Azahar", "Emulator", "Nintendo 3DS (Nachfolger von Citra)",
@@ -71,6 +73,7 @@ public sealed class ComponentInstaller
         ComponentIds.Dolphin => "Dolphin.exe",
         ComponentIds.Cemu => "Cemu.exe",
         ComponentIds.Switch => "eden.exe",
+        ComponentIds.Eglantine => "eglantine.exe",
         ComponentIds.MelonDS => "melonDS.exe",
         ComponentIds.Azahar => "azahar.exe",
         ComponentIds.PadForge => "PadForge.exe",
@@ -131,6 +134,11 @@ public sealed class ComponentInstaller
             case ComponentIds.Switch:
                 exe = await ExtractValidatedAsync(file, target, "eden.exe", ct);
                 // Portabler Modus: Eden nutzt den Ordner „user“ neben eden.exe statt %APPDATA%\eden
+                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(exe)!, "user"));
+                break;
+            case ComponentIds.Eglantine:
+                exe = await ExtractValidatedAsync(file, target, "eglantine.exe", ct);
+                // Portabler Modus: Eglantine nutzt den Ordner „user“ neben eglantine.exe statt %APPDATA%\eglantine
                 Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(exe)!, "user"));
                 break;
             case ComponentIds.MelonDS:
@@ -284,6 +292,9 @@ public sealed class ComponentInstaller
             ComponentIds.Dolphin => Directory.GetDirectories(dir, "Config", SearchOption.AllDirectories),
             ComponentIds.Cemu => Directory.GetFiles(dir, "settings.xml", SearchOption.AllDirectories),
             ComponentIds.Switch => Directory.Exists(Path.Combine(dir, "user", "config"))
+                ? Directory.GetFiles(Path.Combine(dir, "user", "config"), "*.ini", SearchOption.AllDirectories)
+                : [],
+            ComponentIds.Eglantine => Directory.Exists(Path.Combine(dir, "user", "config"))
                 ? Directory.GetFiles(Path.Combine(dir, "user", "config"), "*.ini", SearchOption.AllDirectories)
                 : [],
             ComponentIds.WheelWizard => Directory.GetFiles(dir, "config.json", SearchOption.AllDirectories),

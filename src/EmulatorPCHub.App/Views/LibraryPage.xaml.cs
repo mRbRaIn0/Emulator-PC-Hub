@@ -26,7 +26,7 @@ public sealed partial class LibraryPage : Page, IHubPage
     private static readonly (string id, string label)[] Filters =
     [
         ("all", "Alle"), ("fav", "★ Favoriten"), ("recent", "Zuletzt gespielt"),
-        ("gamecube", "GameCube"), ("wii", "Wii"), ("wiiu", "Wii U"), ("switch", "Switch"), ("ds", "DS"), ("3ds", "3DS"),
+        ("gamecube", "GameCube"), ("wii", "Wii"), ("wiiu", "Wii U"), ("switch", "Switch"), ("switch2", "Switch 2"), ("ds", "DS"), ("3ds", "3DS"),
     ];
 
     private void Build()
@@ -88,6 +88,7 @@ public sealed partial class LibraryPage : Page, IHubPage
         "wii" => g.Platform == HubPlatform.Wii,
         "wiiu" => g.Platform == HubPlatform.WiiU,
         "switch" => g.Platform == HubPlatform.Switch,
+        "switch2" => g.Platform == HubPlatform.Switch2,
         "ds" => g.Platform == HubPlatform.DS,
         "3ds" => g.Platform == HubPlatform.ThreeDS,
         _ => true,

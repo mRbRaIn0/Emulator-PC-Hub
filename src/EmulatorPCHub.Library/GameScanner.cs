@@ -29,6 +29,7 @@ public sealed class GameScanner
         { ".iso", ".gcm", ".gcz", ".rvz", ".ciso", ".wia", ".wbfs" };
     private static readonly HashSet<string> WiiUExt = new(StringComparer.OrdinalIgnoreCase) { ".wux", ".wud", ".wua" };
     private static readonly HashSet<string> SwitchExt = new(StringComparer.OrdinalIgnoreCase) { ".nsp", ".nsz", ".xci", ".xcz" };
+    private static readonly HashSet<string> Switch2Ext = new(HubPlatform.Switch2.FileExtensions(), StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> DsExt = new(HubPlatform.DS.FileExtensions(), StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> ThreeDsExt = new(HubPlatform.ThreeDS.FileExtensions(), StringComparer.OrdinalIgnoreCase);
 
@@ -93,7 +94,7 @@ public sealed class GameScanner
         foreach (var f in files)
         {
             var ext = Path.GetExtension(f);
-            if (DiscExt.Contains(ext) || WiiUExt.Contains(ext) || SwitchExt.Contains(ext) || DsExt.Contains(ext) || ThreeDsExt.Contains(ext) ||
+            if (DiscExt.Contains(ext) || WiiUExt.Contains(ext) || SwitchExt.Contains(ext) || Switch2Ext.Contains(ext) || DsExt.Contains(ext) || ThreeDsExt.Contains(ext) ||
                 (ext.Equals(".rpx", StringComparison.OrdinalIgnoreCase) &&
                  Path.GetFileName(Path.GetDirectoryName(f))?.Equals("code", StringComparison.OrdinalIgnoreCase) == true))
                 yield return f;
@@ -155,6 +156,17 @@ public sealed class GameScanner
                 return;
             var code = platform == HubPlatform.DS ? ReadDsGameCode(file) : ReadThreeDsTitleId(file);
             AddGame(result, file, platform, code, TitleDatabase.CleanFileName(file), SafeSize(file), null);
+            return;
+        }
+
+        if (Switch2Ext.Contains(ext))
+        {
+            if (rootPlatform is not null and not HubPlatform.Switch2)
+                return;
+            // Die Title-ID steht im Dateinamen („Name [0400C3F00006E000][v917504].nup“); der Container selbst ist verschlüsselt.
+            var m = System.Text.RegularExpressions.Regex.Match(Path.GetFileName(file), @"\[([0-9A-Fa-f]{16})\]");
+            var id = m.Success ? m.Groups[1].Value.ToUpperInvariant() : null;
+            AddGame(result, file, HubPlatform.Switch2, id, TitleDatabase.CleanFileName(file), SafeSize(file));
             return;
         }
 

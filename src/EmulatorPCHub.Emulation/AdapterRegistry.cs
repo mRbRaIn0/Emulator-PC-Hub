@@ -6,6 +6,7 @@ using EmulatorPCHub.Emulation.Cemu;
 using EmulatorPCHub.Emulation.Dolphin;
 using EmulatorPCHub.Emulation.Handheld;
 using EmulatorPCHub.Emulation.Switch;
+using EmulatorPCHub.Emulation.Switch2;
 using EmulatorPCHub.Emulation.WheelWizard;
 using EmulatorPCHub.Emulation.WiiCompiled;
 
@@ -22,6 +23,7 @@ public sealed class AdapterRegistry
     public WiiCompiledAdapter WiiCompiled { get; }
     public MelonDsAdapter MelonDS { get; }
     public AzaharAdapter Azahar { get; }
+    public EglantineAdapter Eglantine { get; }
     public WheelWizardIntegration WheelWizard { get; }
     public SwitchEmulatorAdapter Switch => _switchFactories.TryGetValue(_config.Current.Emulators.SwitchAdapter, out var f)
         ? f()
@@ -36,6 +38,7 @@ public sealed class AdapterRegistry
         WiiCompiled = new WiiCompiledAdapter(paths, config, WheelWizard);
         MelonDS = new MelonDsAdapter(paths, config);
         Azahar = new AzaharAdapter(paths, config);
+        Eglantine = new EglantineAdapter(paths, config);
         var eden = new EdenAdapter(paths, config, backups);
         _switchFactories = new Dictionary<string, Func<SwitchEmulatorAdapter>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -58,10 +61,11 @@ public sealed class AdapterRegistry
         EmulatorIds.WiiCompiled => WiiCompiled,
         EmulatorIds.MelonDS => MelonDS,
         EmulatorIds.Azahar => Azahar,
+        EmulatorIds.Eglantine => Eglantine,
         _ => null,
     };
 
-    public IEnumerable<IEmulatorAdapter> All => [Dolphin, Cemu, Switch, WiiCompiled, MelonDS, Azahar];
+    public IEnumerable<IEmulatorAdapter> All => [Dolphin, Cemu, Switch, Eglantine, WiiCompiled, MelonDS, Azahar];
 
     public IEmulatorAdapter? ForGame(GameEntry game) => Get(game.EmulatorId) ?? Get(game.Platform.DefaultAdapterId());
 }

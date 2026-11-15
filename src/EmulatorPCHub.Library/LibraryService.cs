@@ -77,7 +77,7 @@ public sealed class LibraryService
         foreach (var (folder, platform) in new[]
                  {
                      ("GameCube", HubPlatform.GameCube), ("Wii", HubPlatform.Wii),
-                     ("WiiU", HubPlatform.WiiU), ("Switch", HubPlatform.Switch),
+                     ("WiiU", HubPlatform.WiiU), ("Switch", HubPlatform.Switch), ("Switch2", HubPlatform.Switch2),
                      ("DS", HubPlatform.DS), ("3DS", HubPlatform.ThreeDS),
                  })
         {

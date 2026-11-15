@@ -11,12 +11,14 @@ public enum HubPlatform
     ThreeDS,
     /// <summary>Im Hub eingebaute Spiele (z. B. Hub Kart).</summary>
     BuiltIn,
+    /// <summary>Am Ende angehängt: die Plattform steht als Zahl in der Bibliotheksdatenbank.</summary>
+    Switch2,
 }
 
 public static class HubPlatformInfo
 {
     public static IReadOnlyList<HubPlatform> Emulated { get; } =
-        [HubPlatform.GameCube, HubPlatform.Wii, HubPlatform.WiiU, HubPlatform.Switch, HubPlatform.DS, HubPlatform.ThreeDS];
+        [HubPlatform.GameCube, HubPlatform.Wii, HubPlatform.WiiU, HubPlatform.Switch, HubPlatform.Switch2, HubPlatform.DS, HubPlatform.ThreeDS];
 
     public static string DisplayName(this HubPlatform p) => p switch
     {
@@ -24,6 +26,7 @@ public static class HubPlatformInfo
         HubPlatform.Wii => "Nintendo Wii",
         HubPlatform.WiiU => "Nintendo Wii U",
         HubPlatform.Switch => "Nintendo Switch",
+        HubPlatform.Switch2 => "Nintendo Switch 2",
         HubPlatform.DS => "Nintendo DS",
         HubPlatform.ThreeDS => "Nintendo 3DS",
         HubPlatform.BuiltIn => "PC Hub",
@@ -36,6 +39,7 @@ public static class HubPlatformInfo
         HubPlatform.Wii => "Wii",
         HubPlatform.WiiU => "Wii U",
         HubPlatform.Switch => "Switch",
+        HubPlatform.Switch2 => "Switch 2",
         HubPlatform.DS => "DS",
         HubPlatform.ThreeDS => "3DS",
         HubPlatform.BuiltIn => "Hub",
@@ -49,6 +53,7 @@ public static class HubPlatformInfo
         HubPlatform.Wii => "wii",
         HubPlatform.WiiU => "wiiu",
         HubPlatform.Switch => "switch",
+        HubPlatform.Switch2 => "switch2",
         HubPlatform.DS => "ds",
         HubPlatform.ThreeDS => "3ds",
         _ => "builtin",
@@ -61,6 +66,7 @@ public static class HubPlatformInfo
         HubPlatform.Wii => "#FF3FA9F5",
         HubPlatform.WiiU => "#FF1FA3B8",
         HubPlatform.Switch => "#FFE60012",
+        HubPlatform.Switch2 => "#FFE6A100",
         HubPlatform.DS => "#FF8C8C8C",
         HubPlatform.ThreeDS => "#FFCE181E",
         HubPlatform.BuiltIn => "#FFFF8A00",
@@ -73,6 +79,7 @@ public static class HubPlatformInfo
         HubPlatform.GameCube or HubPlatform.Wii => EmulatorIds.Dolphin,
         HubPlatform.WiiU => EmulatorIds.Cemu,
         HubPlatform.Switch => EmulatorIds.Switch,
+        HubPlatform.Switch2 => EmulatorIds.Eglantine,
         HubPlatform.DS => EmulatorIds.MelonDS,
         HubPlatform.ThreeDS => EmulatorIds.Azahar,
         _ => EmulatorIds.BuiltIn,
@@ -84,6 +91,8 @@ public static class HubPlatformInfo
         HubPlatform.Wii => [".iso", ".wbfs", ".rvz", ".gcz", ".ciso", ".wia", ".wad", ".dol", ".elf"],
         HubPlatform.WiiU => [".wux", ".wud", ".wua", ".rpx"],
         HubPlatform.Switch => [".nsp", ".xci", ".nca", ".nro"],
+        // NUP = Switch-2-Container (Spiel + Update); Eglantine lädt ihn direkt
+        HubPlatform.Switch2 => [".nup"],
         HubPlatform.DS => [".nds", ".srl", ".dsi"],
         // .cia startet Azahar nicht direkt (erst über „CIA installieren“), daher nicht in der Bibliothek
         HubPlatform.ThreeDS => [".3ds", ".cci", ".cxi", ".3dsx", ".z3ds", ".zcci", ".zcxi"],
@@ -114,6 +123,7 @@ public static class EmulatorIds
     public const string WiiCompiled = "wiicompiled";
     public const string MelonDS = "melonds";
     public const string Azahar = "azahar";
+    public const string Eglantine = "eglantine";
     public const string BuiltIn = "builtin";
 }
 
@@ -127,6 +137,7 @@ public static class ComponentIds
     public const string WiiCompiled = EmulatorIds.WiiCompiled;
     public const string MelonDS = EmulatorIds.MelonDS;
     public const string Azahar = EmulatorIds.Azahar;
+    public const string Eglantine = EmulatorIds.Eglantine;
     public const string WheelWizard = "wheelwizard";
     public const string RetroRewind = "retrorewind";
     public const string CtgpDeluxe = "ctgpdx";

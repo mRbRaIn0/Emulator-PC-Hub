@@ -58,6 +58,7 @@ public sealed class LibraryPathsConfig
     [JsonPropertyName("wii")] public string Wii { get; set; } = "";
     [JsonPropertyName("wiiu")] public string WiiU { get; set; } = "";
     [JsonPropertyName("switch")] public string Switch { get; set; } = "";
+    [JsonPropertyName("switch2")] public string Switch2 { get; set; } = "";
     [JsonPropertyName("ds")] public string DS { get; set; } = "";
     [JsonPropertyName("3ds")] public string ThreeDS { get; set; } = "";
 
@@ -67,6 +68,7 @@ public sealed class LibraryPathsConfig
         Models.HubPlatform.Wii => Wii,
         Models.HubPlatform.WiiU => WiiU,
         Models.HubPlatform.Switch => Switch,
+        Models.HubPlatform.Switch2 => Switch2,
         Models.HubPlatform.DS => DS,
         Models.HubPlatform.ThreeDS => ThreeDS,
         _ => "",
@@ -80,6 +82,7 @@ public sealed class LibraryPathsConfig
             case Models.HubPlatform.Wii: Wii = path; break;
             case Models.HubPlatform.WiiU: WiiU = path; break;
             case Models.HubPlatform.Switch: Switch = path; break;
+            case Models.HubPlatform.Switch2: Switch2 = path; break;
             case Models.HubPlatform.DS: DS = path; break;
             case Models.HubPlatform.ThreeDS: ThreeDS = path; break;
         }
@@ -99,6 +102,7 @@ public sealed class EmulatorPathsConfig
     [JsonPropertyName("wheelwizard")] public string WheelWizard { get; set; } = "";
     [JsonPropertyName("melonds")] public string MelonDS { get; set; } = "";
     [JsonPropertyName("azahar")] public string Azahar { get; set; } = "";
+    [JsonPropertyName("eglantine")] public string Eglantine { get; set; } = "";
 
     public string Get(string id) => id switch
     {
@@ -109,6 +113,7 @@ public sealed class EmulatorPathsConfig
         Models.ComponentIds.WheelWizard => WheelWizard,
         Models.EmulatorIds.MelonDS => MelonDS,
         Models.EmulatorIds.Azahar => Azahar,
+        Models.EmulatorIds.Eglantine => Eglantine,
         _ => "",
     };
 
@@ -123,6 +128,7 @@ public sealed class EmulatorPathsConfig
             case Models.ComponentIds.WheelWizard: WheelWizard = path; break;
             case Models.EmulatorIds.MelonDS: MelonDS = path; break;
             case Models.EmulatorIds.Azahar: Azahar = path; break;
+            case Models.EmulatorIds.Eglantine: Eglantine = path; break;
         }
     }
 }

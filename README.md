@@ -108,6 +108,7 @@ from the official site and install them in the hub under **Components → “Ins
 | Dolphin | Emulator | https://dolphin-emu.org | Windows archive (ZIP/7z) with `Dolphin.exe` |
 | Cemu | Emulator | https://cemu.info | Windows ZIP with `Cemu.exe` |
 | Eden | Emulator | https://eden-emu.dev | Windows ZIP with `eden.exe` |
+| Eglantine | Emulator (Switch 2, experimental) | https://github.com/Djihads80/Eglantine | Windows ZIP with `eglantine.exe` |
 | melonDS | Emulator | https://melonds.kuribo64.net | Windows ZIP with `melonDS.exe` |
 | Azahar | Emulator | https://azahar-emu.org | Windows ZIP with `azahar.exe` |
 | WiiCompiled | Engine (optional) | https://github.com/patchzyy/Wiicompiled | `WiiCompiled-Setup.exe` |
@@ -126,6 +127,7 @@ Please respect the licenses and terms of use of each project.
 | Dolphin | `.iso` `.gcm` `.gcz` `.rvz` `.ciso` `.wia` `.wbfs` `.wad` `.dol` `.elf` |
 | Cemu | `.wux` `.wud` `.wua` `.rpx` |
 | Eden | `.nsp` `.xci` `.nca` `.nro` (updates/DLC as `.nsp`) |
+| Eglantine | `.nup` (Switch 2 container with game and update) |
 | melonDS | `.nds` `.srl` `.dsi` |
 | Azahar | `.3ds` `.cci` `.cxi` `.3dsx` `.z3ds` `.zcci` `.zcxi` |
 
@@ -164,7 +166,7 @@ downloaded automatically:
 
 ## Installation
 
-1. Download the package `Emulator-PC-Hub-v1.3-win-x64.zip` from [Releases](../../releases).
+1. Download the package `Emulator-PC-Hub-v1.4-win-x64.zip` from [Releases](../../releases).
 2. Extract it to any **writable** folder, e.g. `D:\Emulator PC Hub\` (not to `C:\Program Files`, otherwise the hub
    falls back to `%LOCALAPPDATA%\EmulatorPCHub`).
 3. Start `Emulator PC Hub.exe`.

@@ -42,8 +42,8 @@ public static class CompatibilityPolicy
         // WiiCompiled: native PC-Version mit SDL-Gamepad-Eingabe
         EmulatorIds.WiiCompiled => kind is ControllerKind.PlayStation5 or ControllerKind.PlayStation4 or ControllerKind.SwitchPro
             or ControllerKind.JoyCon or ControllerKind.WiiUPro,
-        // melonDS / Azahar: SDL-Gamepads und Tastatur, Belegung im Emulator selbst
-        EmulatorIds.MelonDS or EmulatorIds.Azahar => kind is ControllerKind.PlayStation5 or ControllerKind.PlayStation4
+        // melonDS / Azahar / Eglantine: SDL-Gamepads und Tastatur, Belegung im Emulator selbst
+        EmulatorIds.MelonDS or EmulatorIds.Azahar or EmulatorIds.Eglantine => kind is ControllerKind.PlayStation5 or ControllerKind.PlayStation4
             or ControllerKind.SwitchPro or ControllerKind.JoyCon or ControllerKind.WiiUPro,
         _ => false,
     };
@@ -72,6 +72,7 @@ public static class CompatibilityPolicy
             : EmulatedPad.SwitchPro,
         EmulatorIds.MelonDS => EmulatedPad.NintendoDS,
         EmulatorIds.Azahar => EmulatedPad.Nintendo3DS,
+        EmulatorIds.Eglantine => EmulatedPad.SwitchPro,
         _ => EmulatedPad.Auto,
     };
 
@@ -83,6 +84,7 @@ public static class CompatibilityPolicy
         EmulatorIds.WiiCompiled => "WiiCompiled",
         EmulatorIds.MelonDS => "melonDS",
         EmulatorIds.Azahar => "Azahar",
+        EmulatorIds.Eglantine => "Eglantine",
         _ => id,
     };
 }

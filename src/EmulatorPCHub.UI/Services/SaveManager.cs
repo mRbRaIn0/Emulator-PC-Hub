@@ -123,6 +123,7 @@ public sealed class SaveManager
     public static string? Unsupported(GameEntry game) => game.Platform switch
     {
         HubPlatform.BuiltIn => "Eingebautes Spiel ohne Spielstand-Ordner.",
+        HubPlatform.Switch2 => "Switch-2-Spielstände verwaltet Eglantine selbst (Ordner „user“ neben eglantine.exe).",
         HubPlatform.Wii or HubPlatform.WiiU or HubPlatform.Switch or HubPlatform.ThreeDS when string.IsNullOrEmpty(game.GameCode) =>
             "Keine Spiel-ID erkannt – der Spielstand-Ordner lässt sich nicht bestimmen.",
         _ => null,

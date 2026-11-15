@@ -38,6 +38,7 @@ public sealed partial class GameTileViewModel : ObservableObject
             HubPlatform.Wii => "#FF0F4470",
             HubPlatform.WiiU => "#FF0B4A55",
             HubPlatform.Switch => "#FF6E0008",
+            HubPlatform.Switch2 => "#FF6B4A00",
             HubPlatform.DS => "#FF3A3A3A",
             HubPlatform.ThreeDS => "#FF5C0B0E",
             _ => "#FF333333",

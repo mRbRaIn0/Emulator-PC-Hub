@@ -153,6 +153,7 @@ internal static partial class Entries
         A("Cemu – gemeinsame Daten (alle Konten)", "Cemu – shared data (all accounts)"); A("melonDS – Spielstand (für alle Profile)", "melonDS – save (for all profiles)");
         A("Azahar – Spielstand auf der emulierten SD-Karte (für alle Profile)", "Azahar – save on the emulated SD card (for all profiles)");
         A("Eingebautes Spiel ohne Spielstand-Ordner.", "Built-in game without a save folder.");
+        A("Switch-2-Spielstände verwaltet Eglantine selbst (Ordner „user“ neben eglantine.exe).", "Eglantine manages Switch 2 saves itself (the “user” folder next to eglantine.exe).");
         A("Keine Spiel-ID erkannt – der Spielstand-Ordner lässt sich nicht bestimmen.", "No game ID detected – the save folder cannot be determined.");
         A("Ungültiger Pfad im Snapshot.", "Invalid path in snapshot."); A("Die Datei ist keine Spielstand-Sicherung des Hubs.", "The file is not a hub save backup.");
         A("Import: ", "Import: ");

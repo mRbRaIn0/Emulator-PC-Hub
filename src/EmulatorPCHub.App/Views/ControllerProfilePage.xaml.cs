@@ -263,6 +263,7 @@ public sealed partial class ControllerProfilePage : Page, IHubPage
         EmulatorIds.Switch => [EmulatedPad.Auto, EmulatedPad.SwitchPro, EmulatedPad.SwitchJoyConPair],
         EmulatorIds.MelonDS => [EmulatedPad.Auto, EmulatedPad.NintendoDS],
         EmulatorIds.Azahar => [EmulatedPad.Auto, EmulatedPad.Nintendo3DS],
+        EmulatorIds.Eglantine => [EmulatedPad.Auto, EmulatedPad.SwitchPro],
         _ => [EmulatedPad.Auto],
     };
 
@@ -287,6 +288,7 @@ public sealed partial class ControllerProfilePage : Page, IHubPage
         EmulatorIds.WiiCompiled => "WiiCompiled",
         EmulatorIds.MelonDS => "melonDS",
         EmulatorIds.Azahar => "Azahar",
+        EmulatorIds.Eglantine => "Eglantine",
         _ => id,
     };
 

@@ -173,6 +173,7 @@ public static class ControllerAdvisor
             _ when g.Platform == HubPlatform.Wii => (InputFit.Recommended, "Unterstützt Classic-/GameCube-Controller – der Hub belegt das passend"),
             _ when g.Platform == HubPlatform.WiiU => (InputFit.Recommended, "Als Wii U Pro Controller, inkl. Gyro"),
             _ when g.Platform == HubPlatform.Switch => (InputFit.Recommended, "Als Pro Controller, inkl. Gyro und Vibration"),
+            _ when g.Platform == HubPlatform.Switch2 => (InputFit.Recommended, "Als Pro Controller – Belegung in Eglantine einmal selbst einstellen"),
             _ => (InputFit.Recommended, "Direkt unterstützt"),
         };
         return new InputAdvice(ControllerKind.PlayStation5, "PS5", fit, why);
@@ -184,7 +185,7 @@ public static class ControllerAdvisor
         {
             HubPlatform.GameCube => (InputFit.No, "GameCube-Spiele brauchen einen GameCube-Controller"),
             HubPlatform.DS or HubPlatform.ThreeDS => (InputFit.No, "Handheld-Emulatoren unterstützen keine Wii Remote"),
-            HubPlatform.Switch => (InputFit.Limited, "Nur über PadForge als normales Gamepad – ohne Zeiger und Bewegung"),
+            HubPlatform.Switch or HubPlatform.Switch2 => (InputFit.Limited, "Nur über PadForge als normales Gamepad – ohne Zeiger und Bewegung"),
             HubPlatform.Wii when backend == EmulatorIds.WiiCompiled => (InputFit.No, "WiiCompiled kennt keine Wii Remote – Engine auf Dolphin stellen"),
             HubPlatform.Wii => style switch
             {
